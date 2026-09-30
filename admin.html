@@ -391,6 +391,30 @@
       border: 1px solid #cbeeff;
     }
 
+    .badge-tipo-membro {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #e1f5fe;
+      color: #0277bd;
+      border: 1px solid #b3e5fc;
+      white-space: nowrap;
+    }
+
+    .badge-tipo-convidado {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #fce4ec;
+      color: #c2185b;
+      border: 1px solid #f8bbd0;
+      white-space: nowrap;
+    }
+
     .empty-state {
       text-align: center;
       padding: 48px 16px;
@@ -481,11 +505,21 @@
     <!-- Authenticated Dashboard View -->
     <div id="dashboard-view" style="display: none;">
       <!-- Stats Cards -->
-      <div class="stats-grid">
+      <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
         <div class="stat-card">
           <div class="stat-label">Total de Participantes</div>
           <div id="stat-total" class="stat-value">0</div>
           <div class="stat-sub">Confirmações no Firestore</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Membros Insanos</div>
+          <div id="stat-membros" class="stat-value" style="color: var(--color-accent);">0</div>
+          <div class="stat-sub">Membros do motoclube</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Convidados</div>
+          <div id="stat-convidados" class="stat-value" style="color: var(--color-accent-2);">0</div>
+          <div class="stat-sub">Outros motoclubes</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Participantes Filtrados</div>
@@ -507,6 +541,7 @@
             <button class="tab-btn active" data-group="regional">Por Regional</button>
             <button class="tab-btn" data-group="divisao">Por Divisão</button>
             <button class="tab-btn" data-group="grau">Por Grau</button>
+            <button class="tab-btn" data-group="tipo">Por Tipo</button>
           </div>
         </div>
         <div id="group-content-area" class="group-grid">
@@ -521,7 +556,16 @@
           <button id="btn-clear-filters" class="btn btn-secondary btn-sm">Limpar Filtros</button>
         </div>
 
-        <div class="filters-bar">
+        <div class="filters-bar" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));">
+          <div class="form-group">
+            <label class="form-label" for="filter-tipo">Tipo</label>
+            <select id="filter-tipo" class="form-control">
+              <option value="">Todos os Tipos</option>
+              <option value="Membro Insanos">Membros Insanos</option>
+              <option value="Convidado">Convidados</option>
+            </select>
+          </div>
+
           <div class="form-group">
             <label class="form-label" for="filter-regional">Regional</label>
             <select id="filter-regional" class="form-control">
@@ -543,9 +587,9 @@
             </select>
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="filter-search">Buscar por Nome / Colete</label>
-            <input type="text" id="filter-search" class="form-control" placeholder="Digite para buscar...">
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label" for="filter-search">Buscar por Nome / Colete / Motoclube</label>
+            <input type="text" id="filter-search" class="form-control" placeholder="Digite para buscar por nome, colete ou motoclube...">
           </div>
         </div>
 
@@ -574,8 +618,9 @@
           <thead>
             <tr>
               <th style="width: 50px; text-align: center;">Nº</th>
+              <th style="width: 120px;">Tipo</th>
               <th>Nome</th>
-              <th>Nome de Colete</th>
+              <th>Colete / Motoclube</th>
               <th>Regional</th>
               <th>Divisão</th>
               <th>Grau</th>
@@ -611,12 +656,15 @@
       const userEmailDisplay = document.getElementById('user-email-display');
       const loginError = document.getElementById('login-error');
 
+      const filterTipo = document.getElementById('filter-tipo');
       const filterRegional = document.getElementById('filter-regional');
       const filterDivisao = document.getElementById('filter-divisao');
       const filterGrau = document.getElementById('filter-grau');
       const filterSearch = document.getElementById('filter-search');
 
       const statTotal = document.getElementById('stat-total');
+      const statMembros = document.getElementById('stat-membros');
+      const statConvidados = document.getElementById('stat-convidados');
       const statFiltered = document.getElementById('stat-filtered');
       const statRegionais = document.getElementById('stat-regionais');
       const countDisplay = document.getElementById('count-display');
@@ -646,6 +694,7 @@
       }
 
       // Dynamic divisions on regional filter change
+      filterTipo.addEventListener('change', applyFilters);
       filterRegional.addEventListener('change', () => {
         updateDivisaoFilterOptions();
         applyFilters();
@@ -789,19 +838,23 @@
 
       // Filters
       function applyFilters() {
+        const selTipo = (filterTipo.value || '').trim();
         const selReg = filterRegional.value.trim().toLowerCase();
         const selDiv = filterDivisao.value.trim().toLowerCase();
         const selGrau = filterGrau.value.trim().toLowerCase();
         const search = filterSearch.value.trim().toLowerCase();
 
         filteredParticipants = allParticipants.filter(p => {
+          const pTipo = p.tipoParticipante || 'Membro Insanos';
+          if (selTipo && pTipo !== selTipo) return false;
           if (selReg && (p.regional || '').toLowerCase() !== selReg) return false;
           if (selDiv && (p.divisao || '').toLowerCase() !== selDiv) return false;
           if (selGrau && (p.grau || '').toLowerCase() !== selGrau) return false;
           if (search) {
             const nomeMatch = (p.nome || '').toLowerCase().includes(search);
             const coleteMatch = (p.nomeColete || '').toLowerCase().includes(search);
-            if (!nomeMatch && !coleteMatch) return false;
+            const motoclubeMatch = (p.motoclube || '').toLowerCase().includes(search);
+            if (!nomeMatch && !coleteMatch && !motoclubeMatch) return false;
           }
           return true;
         });
@@ -810,6 +863,7 @@
       }
 
       document.getElementById('btn-clear-filters').addEventListener('click', () => {
+        filterTipo.value = '';
         filterRegional.value = '';
         updateDivisaoFilterOptions();
         filterDivisao.value = '';
@@ -826,7 +880,12 @@
         statFiltered.textContent = filteredParticipants.length;
         countDisplay.textContent = filteredParticipants.length;
 
-        // Unique regionals with participants
+        const membrosCount = allParticipants.filter(p => (p.tipoParticipante || 'Membro Insanos') === 'Membro Insanos').length;
+        const convidadosCount = allParticipants.filter(p => p.tipoParticipante === 'Convidado').length;
+        if (statMembros) statMembros.textContent = membrosCount;
+        if (statConvidados) statConvidados.textContent = convidadosCount;
+
+        // Unique regionals with participants (only for members with regional filled)
         const activeRegionals = new Set(allParticipants.map(p => p.regional).filter(Boolean));
         statRegionais.textContent = activeRegionals.size;
 
@@ -841,9 +900,10 @@
 
         allParticipants.forEach(p => {
           let key = '';
-          if (currentGroupTab === 'regional') key = p.regional || 'Não informada';
-          else if (currentGroupTab === 'divisao') key = p.divisao || 'Não informada';
-          else if (currentGroupTab === 'grau') key = p.grau || 'Não informado';
+          if (currentGroupTab === 'regional') key = p.regional || 'Não informada / Convidado';
+          else if (currentGroupTab === 'divisao') key = p.divisao || 'Não informada / Convidado';
+          else if (currentGroupTab === 'grau') key = p.grau || 'Não informado / Convidado';
+          else if (currentGroupTab === 'tipo') key = p.tipoParticipante || 'Membro Insanos';
 
           counts[key] = (counts[key] || 0) + 1;
         });
@@ -888,13 +948,25 @@
 
         filteredParticipants.forEach((p, idx) => {
           const tr = document.createElement('tr');
+          const isConv = p.tipoParticipante === 'Convidado';
+          const tipoBadge = isConv
+            ? `<span class="badge-tipo-convidado">Convidado</span>`
+            : `<span class="badge-tipo-membro">Membro</span>`;
+          const coleteOuMc = isConv
+            ? `<span style="color:var(--color-accent-2);font-weight:600">MC: ${escapeHtml(p.motoclube || 'Não informado')}</span>`
+            : escapeHtml(p.nomeColete || '-');
+          const regionalVal = isConv ? '<span style="color:var(--color-neutral-400);">-</span>' : escapeHtml(p.regional || '-');
+          const divisaoVal = isConv ? '<span style="color:var(--color-neutral-400);">-</span>' : escapeHtml(p.divisao || '-');
+          const grauVal = isConv ? '<span style="color:var(--color-neutral-400);">-</span>' : `<span class="badge-grau">${escapeHtml(p.grau || '-')}</span>`;
+
           tr.innerHTML = `
             <td style="text-align: center; font-weight: 700; color: var(--color-neutral-600);">${idx + 1}</td>
+            <td>${tipoBadge}</td>
             <td style="font-weight: 600;">${escapeHtml(p.nome || '')}</td>
-            <td>${escapeHtml(p.nomeColete || '')}</td>
-            <td>${escapeHtml(p.regional || '')}</td>
-            <td>${escapeHtml(p.divisao || '')}</td>
-            <td><span class="badge-grau">${escapeHtml(p.grau || '')}</span></td>
+            <td>${coleteOuMc}</td>
+            <td>${regionalVal}</td>
+            <td>${divisaoVal}</td>
+            <td>${grauVal}</td>
             <td style="color: var(--color-neutral-700); font-size: 12px;">${escapeHtml(p.dataHoraConfirmacao || '')}</td>
             <td style="text-align: center;">
               <button class="btn btn-danger btn-sm btn-delete" data-id="${p.id}" data-name="${escapeHtml(p.nome || '')}">

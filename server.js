@@ -12,6 +12,11 @@ const HOST = '0.0.0.0';
 // Serve static assets from the current directory
 app.use(express.static(__dirname));
 
+// Admin dashboard route
+app.get(['/admin', '/admin/'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
 // Fallback to index.html for SPA routes
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));

@@ -75,8 +75,18 @@ export function normalizeStr(str) {
     .replace(/_+/g, '_');
 }
 
-export function makeDocId(nome, nomeColete, regional, divisao) {
-  const rawKey = `${normalizeStr(nome)}_${normalizeStr(nomeColete)}_${normalizeStr(regional)}_${normalizeStr(divisao)}`;
+export function makeDocId(param1, nomeColete, regional, divisao) {
+  let rawKey = '';
+  if (typeof param1 === 'object' && param1 !== null) {
+    const { tipoParticipante, nome, nomeColete: nc, regional: reg, divisao: div, motoclube } = param1;
+    if (tipoParticipante === 'Convidado') {
+      rawKey = `conv_${normalizeStr(nome)}_${normalizeStr(motoclube)}`;
+    } else {
+      rawKey = `${normalizeStr(nome)}_${normalizeStr(nc)}_${normalizeStr(reg)}_${normalizeStr(div)}`;
+    }
+  } else {
+    rawKey = `${normalizeStr(param1)}_${normalizeStr(nomeColete)}_${normalizeStr(regional)}_${normalizeStr(divisao)}`;
+  }
   let hash = 0;
   for (let i = 0; i < rawKey.length; i++) {
     hash = ((hash << 5) - hash) + rawKey.charCodeAt(i);
@@ -94,29 +104,20 @@ export function isDivisaoObrigatoria(grau) {
   return !GRAUS_SEM_DIVISAO.includes(grau.trim());
 }
 
-export async function confirmarPresenca({ nome, nomeColete, regional, divisao, grau }) {
-  const grauTrim = (grau || '').trim();
-  const precisaDivisao = isDivisaoObrigatoria(grauTrim);
-  const divisaoFinal = (divisao || '').trim();
+export async function confirmarPresenca({
+  tipoParticipante = 'Membro Insanos',
+  nome,
+  nomeColete = '',
+  regional = '',
+  divisao = '',
+  grau = '',
+  motoclube = ''
+}) {
+  const isConvidado = tipoParticipante === 'Convidado';
+  const nomeTrim = (nome || '').trim();
 
-  if (!nome || !nomeColete || !regional || !grauTrim || (precisaDivisao && !divisaoFinal)) {
-    if (precisaDivisao && !divisaoFinal) {
-      return { success: false, error: 'O campo Divisão é obrigatório para este grau.' };
-    }
-    return { success: false, error: 'Todos os campos obrigatórios devem ser preenchidos.' };
-  }
-
-  const docId = makeDocId(nome, nomeColete, regional, divisaoFinal);
-  const docRef = doc(db, 'bonde_1000', docId);
-
-  try {
-    const existingSnap = await getDoc(docRef);
-    if (existingSnap.exists()) {
-      return { success: false, error: 'Esta presença já foi registrada.' };
-    }
-  } catch (err) {
-    console.warn('Verificação de duplicidade:', err);
-  }
+  let docId = '';
+  let payload = {};
 
   const now = new Date();
   const dataHoraConfirmacao = now.toLocaleString('pt-BR', {
@@ -129,23 +130,86 @@ export async function confirmarPresenca({ nome, nomeColete, regional, divisao, g
     timeZone: 'America/Sao_Paulo'
   });
 
-  const payload = {
-    nome: nome.trim(),
-    nomeColete: nomeColete.trim(),
-    regional: regional.trim(),
-    divisao: divisaoFinal,
-    grau: grauTrim,
-    evento: '1º Bonde das 1000 Motos',
-    dataEvento: '10/10/2026',
-    horarioSaida: '10:00',
-    localConcentracao: 'PE Avenida Deputado Aníbal Khury',
-    dataHoraConfirmacao,
-    lookupKey: `${normalizeStr(nome)}_${normalizeStr(nomeColete)}_${normalizeStr(regional)}_${normalizeStr(divisaoFinal)}`
-  };
+  if (isConvidado) {
+    const motoclubeTrim = (motoclube || '').trim();
+    if (!nomeTrim || !motoclubeTrim) {
+      return { success: false, error: 'Por favor, preencha o Nome e o Motoclube.' };
+    }
+
+    docId = makeDocId({ tipoParticipante: 'Convidado', nome: nomeTrim, motoclube: motoclubeTrim });
+    payload = {
+      nome: nomeTrim,
+      nomeColete: motoclubeTrim,
+      regional: 'Convidado',
+      divisao: '',
+      grau: 'Convidado',
+      evento: '1º Bonde das 1000 Motos',
+      dataEvento: '10/10/2026',
+      horarioSaida: '10:00',
+      localConcentracao: 'PE Avenida Deputado Aníbal Khury',
+      dataHoraConfirmacao,
+      lookupKey: `conv_${normalizeStr(nomeTrim)}_${normalizeStr(motoclubeTrim)}`
+    };
+  } else {
+    const nomeColeteTrim = (nomeColete || '').trim();
+    const regionalTrim = (regional || '').trim();
+    const grauTrim = (grau || '').trim();
+    const precisaDivisao = isDivisaoObrigatoria(grauTrim);
+    const divisaoFinal = (divisao || '').trim();
+
+    if (!nomeTrim || !nomeColeteTrim || !regionalTrim || !grauTrim || (precisaDivisao && !divisaoFinal)) {
+      if (precisaDivisao && !divisaoFinal) {
+        return { success: false, error: 'O campo Divisão é obrigatório para este grau.' };
+      }
+      return { success: false, error: 'Todos os campos obrigatórios devem ser preenchidos.' };
+    }
+
+    docId = makeDocId({
+      tipoParticipante: 'Membro Insanos',
+      nome: nomeTrim,
+      nomeColete: nomeColeteTrim,
+      regional: regionalTrim,
+      divisao: divisaoFinal
+    });
+
+    payload = {
+      nome: nomeTrim,
+      nomeColete: nomeColeteTrim,
+      regional: regionalTrim,
+      divisao: divisaoFinal,
+      grau: grauTrim,
+      evento: '1º Bonde das 1000 Motos',
+      dataEvento: '10/10/2026',
+      horarioSaida: '10:00',
+      localConcentracao: 'PE Avenida Deputado Aníbal Khury',
+      dataHoraConfirmacao,
+      lookupKey: `${normalizeStr(nomeTrim)}_${normalizeStr(nomeColeteTrim)}_${normalizeStr(regionalTrim)}_${normalizeStr(divisaoFinal)}`
+    };
+  }
+
+  const docRef = doc(db, 'bonde_1000', docId);
+
+  try {
+    const existingSnap = await getDoc(docRef);
+    if (existingSnap.exists()) {
+      return { success: false, error: 'Esta presença já foi registrada.' };
+    }
+  } catch (err) {
+    console.warn('Verificação de duplicidade:', err);
+  }
 
   try {
     await setDoc(docRef, payload);
-    return { success: true, data: payload, id: docId };
+    const returnData = {
+      ...payload,
+      tipoParticipante: isConvidado ? 'Convidado' : 'Membro Insanos',
+      motoclube: isConvidado ? (motoclube || '').trim() : 'Insanos MC',
+      nomeColete: isConvidado ? '-' : payload.nomeColete,
+      regional: isConvidado ? '-' : payload.regional,
+      divisao: isConvidado ? '-' : payload.divisao,
+      grau: isConvidado ? '-' : payload.grau
+    };
+    return { success: true, data: returnData, id: docId };
   } catch (err) {
     handleFirestoreError(err, OperationType.CREATE, `bonde_1000/${docId}`);
   }
@@ -157,7 +221,18 @@ export async function listarParticipantes() {
     const snapshot = await getDocs(colRef);
     const list = [];
     snapshot.forEach(docSnap => {
-      list.push({ id: docSnap.id, ...docSnap.data() });
+      const data = docSnap.data();
+      const isConv = data.tipoParticipante === 'Convidado' || data.regional === 'Convidado' || data.grau === 'Convidado';
+      list.push({
+        id: docSnap.id,
+        ...data,
+        tipoParticipante: isConv ? 'Convidado' : 'Membro Insanos',
+        motoclube: isConv ? (data.motoclube || data.nomeColete || 'Sem Clube') : 'Insanos MC',
+        nomeColete: isConv ? '-' : (data.nomeColete || '-'),
+        regional: isConv ? '-' : (data.regional || '-'),
+        divisao: isConv ? '-' : (data.divisao || '-'),
+        grau: isConv ? '-' : (data.grau || '-')
+      });
     });
     list.sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
     return list;
@@ -177,20 +252,27 @@ export async function excluirParticipante(id) {
 }
 
 export function exportarExcel(participantes, nomeArquivo = 'bonde_1000_participantes.xlsx') {
-  const dados = participantes.map((p, idx) => ({
-    'Nº': idx + 1,
-    'Nome': p.nome || '',
-    'Nome de Colete': p.nomeColete || '',
-    'Regional': p.regional || '',
-    'Divisão': p.divisao || '',
-    'Grau': p.grau || '',
-    'Data/Hora da confirmação': p.dataHoraConfirmacao || ''
-  }));
+  const dados = participantes.map((p, idx) => {
+    const isConv = p.tipoParticipante === 'Convidado';
+    return {
+      'Nº': idx + 1,
+      'Tipo': p.tipoParticipante || 'Membro Insanos',
+      'Nome': p.nome || '',
+      'Nome de Colete': isConv ? '-' : (p.nomeColete || '-'),
+      'Motoclube': isConv ? (p.motoclube || '-') : 'Insanos MC',
+      'Regional': isConv ? '-' : (p.regional || '-'),
+      'Divisão': isConv ? '-' : (p.divisao || '-'),
+      'Grau': isConv ? '-' : (p.grau || '-'),
+      'Data/Hora da confirmação': p.dataHoraConfirmacao || ''
+    };
+  });
 
   const worksheet = XLSX.utils.json_to_sheet(dados);
   worksheet['!cols'] = [
     { wch: 6 },
+    { wch: 18 },
     { wch: 30 },
+    { wch: 20 },
     { wch: 25 },
     { wch: 30 },
     { wch: 30 },
@@ -205,7 +287,7 @@ export function exportarExcel(participantes, nomeArquivo = 'bonde_1000_participa
 
 export function exportarPDF(participantes, nomeArquivo = 'bonde_1000_participantes.pdf') {
   const pdfDoc = new jsPDF({
-    orientation: 'portrait',
+    orientation: 'landscape',
     unit: 'mm',
     format: 'a4'
   });
@@ -213,33 +295,38 @@ export function exportarPDF(participantes, nomeArquivo = 'bonde_1000_participant
   pdfDoc.setFont('helvetica', 'bold');
   pdfDoc.setFontSize(18);
   pdfDoc.setTextColor(32, 30, 29);
-  pdfDoc.text('1º BONDE DAS 1000 MOTOS', 14, 18);
+  pdfDoc.text('1º BONDE DAS 1000 MOTOS', 14, 16);
 
   pdfDoc.setFont('helvetica', 'normal');
-  pdfDoc.setFontSize(12);
+  pdfDoc.setFontSize(11);
   pdfDoc.setTextColor(96, 93, 93);
-  pdfDoc.text('Lista de participantes confirmados', 14, 25);
+  pdfDoc.text('Lista de participantes confirmados (Membros Insanos MC e Convidados)', 14, 22);
 
   docDate(pdfDoc);
 
-  const tableData = participantes.map((p, idx) => [
-    idx + 1,
-    p.nome || '',
-    p.nomeColete || '',
-    p.regional || '',
-    p.divisao || '',
-    p.grau || '',
-    p.dataHoraConfirmacao || ''
-  ]);
+  const tableData = participantes.map((p, idx) => {
+    const isConv = p.tipoParticipante === 'Convidado';
+    const coleteOuMc = isConv ? (p.motoclube ? `MC: ${p.motoclube}` : '-') : (p.nomeColete || '-');
+    return [
+      idx + 1,
+      p.tipoParticipante || 'Membro Insanos',
+      p.nome || '',
+      coleteOuMc,
+      isConv ? '-' : (p.regional || '-'),
+      isConv ? '-' : (p.divisao || '-'),
+      isConv ? '-' : (p.grau || '-'),
+      p.dataHoraConfirmacao || ''
+    ];
+  });
 
   pdfDoc.autoTable({
-    startY: 36,
-    head: [['Nº', 'Nome', 'Nome de Colete', 'Regional', 'Divisão', 'Grau', 'Data/Hora']],
+    startY: 32,
+    head: [['Nº', 'Tipo', 'Nome', 'Colete / Motoclube', 'Regional', 'Divisão', 'Grau', 'Data/Hora']],
     body: tableData,
     styles: {
       font: 'helvetica',
       fontSize: 8,
-      cellPadding: 2.5,
+      cellPadding: 2,
       textColor: [32, 30, 29],
       overflow: 'linebreak'
     },
@@ -253,21 +340,22 @@ export function exportarPDF(participantes, nomeArquivo = 'bonde_1000_participant
     },
     columnStyles: {
       0: { cellWidth: 10, halign: 'center' },
-      1: { cellWidth: 35 },
-      2: { cellWidth: 28 },
-      3: { cellWidth: 35 },
-      4: { cellWidth: 35 },
-      5: { cellWidth: 22 },
-      6: { cellWidth: 25 }
+      1: { cellWidth: 30 },
+      2: { cellWidth: 45 },
+      3: { cellWidth: 40 },
+      4: { cellWidth: 45 },
+      5: { cellWidth: 45 },
+      6: { cellWidth: 25 },
+      7: { cellWidth: 30 }
     },
     margin: { left: 10, right: 10 }
   });
 
-  const finalY = pdfDoc.lastAutoTable.finalY || 40;
+  const finalY = pdfDoc.lastAutoTable.finalY || 35;
   pdfDoc.setFont('helvetica', 'bold');
-  pdfDoc.setFontSize(12);
+  pdfDoc.setFontSize(11);
   pdfDoc.setTextColor(0, 103, 134);
-  pdfDoc.text(`TOTAL DE PARTICIPANTES: ${participantes.length}`, 14, finalY + 12);
+  pdfDoc.text(`TOTAL DE PARTICIPANTES: ${participantes.length}`, 14, finalY + 10);
 
   pdfDoc.save(nomeArquivo);
 }
