@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel Administrativo — 1º Bonde das 1000 Motos</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --color-bg: #f3f2f2;
+      --color-surface: #ffffff;
+      --color-card: #f8f6f6;
+      --color-text: #201e1d;
+      --color-accent: #0088b0;
+      --color-accent-hover: #006786;
+      --color-accent-2: #d6006c;
+      --color-accent-2-hover: #aa0b56;
+      --color-divider: rgba(32, 30, 29, 0.12);
+      --color-neutral-100: #f8f4f4;
+      --color-neutral-200: #eae7e7;
+      --color-neutral-300: #d7d3d3;
+      --color-neutral-400: #bab6b6;
+      --color-neutral-600: #7d7979;
+      --color-neutral-700: #605d5d;
+      --color-neutral-800: #444141;
+      --color-success: #1b873f;
+      --color-danger: #c5221f;
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 14px rgba(0,0,0,0.08);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+      --font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-divider);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .header-subtitle {
+      font-size: 13px;
+      color: var(--color-neutral-700);
+      margin-top: 2px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--color-accent);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--color-accent-hover); }
+
+    .btn-secondary {
+      background: var(--color-surface);
+      border-color: var(--color-divider);
+      color: var(--color-text);
+    }
+    .btn-secondary:hover { background: var(--color-neutral-100); }
+
+    .btn-success {
+      background: var(--color-success);
+      color: #fff;
+    }
+    .btn-success:hover { background: #146c31; }
+
+    .btn-danger {
+      background: #fdf2f2;
+      border-color: #f8b4b4;
+      color: var(--color-danger);
+    }
+    .btn-danger:hover { background: #fde8e8; }
+
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+    main {
+      flex: 1;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    /* Auth Card */
+    .auth-container {
+      max-width: 440px;
+      margin: 60px auto;
+      background: var(--color-surface);
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-lg);
+      padding: 36px 28px;
+      text-align: center;
+      box-shadow: var(--shadow-md);
+    }
+
+    .auth-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .auth-desc {
+      font-size: 14px;
+      color: var(--color-neutral-700);
+      margin-bottom: 24px;
+      line-height: 1.4;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-neutral-700);
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--color-accent);
+      line-height: 1.1;
+    }
+
+    .stat-sub {
+      font-size: 12px;
+      color: var(--color-neutral-600);
+      margin-top: 6px;
+    }
+
+    /* Grouped Section */
+    .section-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .section-title {
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .tabs-nav {
+      display: flex;
+      background: var(--color-neutral-200);
+      border-radius: var(--radius-md);
+      padding: 3px;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      all: unset;
+      cursor: pointer;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 6px;
+      color: var(--color-neutral-700);
+      transition: all 0.15s;
+    }
+
+    .tab-btn.active {
+      background: var(--color-surface);
+      color: var(--color-accent);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .group-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 10px;
+      max-height: 280px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .group-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--color-neutral-100);
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      font-size: 13px;
+    }
+
+    .group-item-name {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-right: 8px;
+    }
+
+    .group-badge {
+      background: var(--color-accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      flex-shrink: 0;
+    }
+
+    /* Filters Bar */
+    .filters-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+      align-items: end;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-neutral-700);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+      color: var(--color-text);
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: var(--color-accent);
+    }
+
+    .actions-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .actions-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Table */
+    .table-container {
+      background: var(--color-surface);
+      border: 1px solid var(--color-divider);
+      border-radius: var(--radius-lg);
+      overflow-x: auto;
+      box-shadow: var(--shadow-sm);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    thead {
+      background: var(--color-neutral-100);
+      border-bottom: 2px solid var(--color-divider);
+    }
+
+    th {
+      padding: 12px 14px;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--color-neutral-800);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--color-divider);
+      vertical-align: middle;
+    }
+
+    tbody tr:hover {
+      background: #faf8f8;
+    }
+
+    .badge-grau {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #e9f8ff;
+      color: var(--color-accent-hover);
+      border: 1px solid #cbeeff;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 16px;
+      color: var(--color-neutral-700);
+    }
+
+    .empty-icon {
+      font-size: 40px;
+      margin-bottom: 8px;
+      opacity: 0.5;
+    }
+
+    /* Loading overlay */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(0,0,0,0.1);
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      .header-inner { flex-direction: column; align-items: flex-start; }
+      .filters-bar { grid-template-columns: 1fr; }
+      .actions-bar { flex-direction: column; align-items: stretch; }
+      .actions-group { flex-direction: column; }
+      .actions-group .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div class="header-brand">
+        <div>
+          <div class="header-title">1º Bonde das 1000 Motos</div>
+          <div class="header-subtitle">Área Administrativa · 2º Insanos Moto Fest</div>
+        </div>
+      </div>
+      <div id="auth-header-area" style="display: none; align-items: center; gap: 12px;">
+        <span id="user-email-display" style="font-size: 13px; font-weight: 600; color: var(--color-neutral-700);"></span>
+        <button id="btn-logout" class="btn btn-secondary btn-sm">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="app-container">
+    <!-- Unauthenticated View -->
+    <div id="login-view" class="auth-container">
+      <div style="font-size: 48px; margin-bottom: 12px;">🔒</div>
+      <h2 class="auth-title">Acesso Administrativo</h2>
+      <p class="auth-desc">Esta área é restrita aos organizadores do evento. Conecte-se com sua conta Google autorizada para visualizar e gerenciar os participantes.</p>
+      <button id="btn-login-google" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 15px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" style="margin-right: 4px;"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#fff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#fff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+        Entrar com Google
+      </button>
+      <div id="login-error" style="display: none; margin-top: 16px; padding: 10px; border-radius: var(--radius-md); background: #fdf2f2; color: var(--color-danger); font-size: 13px;"></div>
+    </div>
+
+    <!-- Access Denied View -->
+    <div id="denied-view" class="auth-container" style="display: none;">
+      <div style="font-size: 48px; margin-bottom: 12px;">🚫</div>
+      <h2 class="auth-title">Acesso Não Autorizado</h2>
+      <p id="denied-desc" class="auth-desc">Sua conta Google conectada não possui privilégios de administrador.</p>
+      <button id="btn-denied-logout" class="btn btn-secondary" style="width: 100%;">Trocar de Conta</button>
+    </div>
+
+    <!-- Authenticated Dashboard View -->
+    <div id="dashboard-view" style="display: none;">
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total de Participantes</div>
+          <div id="stat-total" class="stat-value">0</div>
+          <div class="stat-sub">Confirmações no Firestore</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Participantes Filtrados</div>
+          <div id="stat-filtered" class="stat-value">0</div>
+          <div class="stat-sub">Visíveis na tabela atual</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Regionais Ativas</div>
+          <div id="stat-regionais" class="stat-value">0</div>
+          <div class="stat-sub">Com presença confirmada</div>
+        </div>
+      </div>
+
+      <!-- Grouped Totals Accordion/Tabs -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">Contadores e Totais Agrupados</div>
+          <div class="tabs-nav">
+            <button class="tab-btn active" data-group="regional">Por Regional</button>
+            <button class="tab-btn" data-group="divisao">Por Divisão</button>
+            <button class="tab-btn" data-group="grau">Por Grau</button>
+          </div>
+        </div>
+        <div id="group-content-area" class="group-grid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Filters & Actions -->
+      <div class="section-card" style="padding-bottom: 12px;">
+        <div class="section-header" style="margin-bottom: 12px;">
+          <div class="section-title">Filtros de Pesquisa</div>
+          <button id="btn-clear-filters" class="btn btn-secondary btn-sm">Limpar Filtros</button>
+        </div>
+
+        <div class="filters-bar">
+          <div class="form-group">
+            <label class="form-label" for="filter-regional">Regional</label>
+            <select id="filter-regional" class="form-control">
+              <option value="">Todas as Regionais</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="filter-divisao">Divisão</label>
+            <select id="filter-divisao" class="form-control">
+              <option value="">Todas as Divisões</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="filter-grau">Grau</label>
+            <select id="filter-grau" class="form-control">
+              <option value="">Todos os Graus</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="filter-search">Buscar por Nome / Colete</label>
+            <input type="text" id="filter-search" class="form-control" placeholder="Digite para buscar...">
+          </div>
+        </div>
+
+        <div class="actions-bar">
+          <div style="font-size: 13px; font-weight: 600; color: var(--color-neutral-700);">
+            Exibindo <span id="count-display">0</span> de <span id="total-display">0</span> registros
+          </div>
+          <div class="actions-group">
+            <button id="btn-refresh" class="btn btn-secondary">
+              <span id="refresh-spinner" class="spinner" style="display:none;"></span>
+              Atualizar
+            </button>
+            <button id="btn-export-excel" class="btn btn-success">
+              📊 Exportar Excel
+            </button>
+            <button id="btn-export-pdf" class="btn btn-primary">
+              📄 Exportar PDF
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table View -->
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 50px; text-align: center;">Nº</th>
+              <th>Nome</th>
+              <th>Nome de Colete</th>
+              <th>Regional</th>
+              <th>Divisão</th>
+              <th>Grau</th>
+              <th>Data/Hora da confirmação</th>
+              <th style="width: 80px; text-align: center;">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+        <div id="table-empty" class="empty-state" style="display: none;">
+          <div class="empty-icon">🔍</div>
+          <div style="font-weight: 600; font-size: 15px;">Nenhum participante encontrado</div>
+          <div style="font-size: 13px; margin-top: 4px;">Ajuste os filtros selecionados ou limpe a busca.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="assets/bonde-bundle.js"></script>
+  <script>
+    (function() {
+      const ADMIN_EMAIL = 'suporte.cortesa@gmail.com';
+      let allParticipants = [];
+      let filteredParticipants = [];
+      let currentGroupTab = 'regional';
+
+      const loginView = document.getElementById('login-view');
+      const deniedView = document.getElementById('denied-view');
+      const dashboardView = document.getElementById('dashboard-view');
+      const authHeaderArea = document.getElementById('auth-header-area');
+      const userEmailDisplay = document.getElementById('user-email-display');
+      const loginError = document.getElementById('login-error');
+
+      const filterRegional = document.getElementById('filter-regional');
+      const filterDivisao = document.getElementById('filter-divisao');
+      const filterGrau = document.getElementById('filter-grau');
+      const filterSearch = document.getElementById('filter-search');
+
+      const statTotal = document.getElementById('stat-total');
+      const statFiltered = document.getElementById('stat-filtered');
+      const statRegionais = document.getElementById('stat-regionais');
+      const countDisplay = document.getElementById('count-display');
+      const totalDisplay = document.getElementById('total-display');
+      const groupContentArea = document.getElementById('group-content-area');
+      const tableBody = document.getElementById('table-body');
+      const tableEmpty = document.getElementById('table-empty');
+      const refreshSpinner = document.getElementById('refresh-spinner');
+
+      // Populate filter dropdowns
+      if (window.BondeService) {
+        const regionais = BondeService.REGIONAIS || [];
+        regionais.forEach(reg => {
+          const opt = document.createElement('option');
+          opt.value = reg;
+          opt.textContent = reg;
+          filterRegional.appendChild(opt);
+        });
+
+        const graus = BondeService.GRAUS || [];
+        graus.forEach(g => {
+          const opt = document.createElement('option');
+          opt.value = g;
+          opt.textContent = g;
+          filterGrau.appendChild(opt);
+        });
+      }
+
+      // Dynamic divisions on regional filter change
+      filterRegional.addEventListener('change', () => {
+        updateDivisaoFilterOptions();
+        applyFilters();
+      });
+      filterDivisao.addEventListener('change', applyFilters);
+      filterGrau.addEventListener('change', applyFilters);
+      filterSearch.addEventListener('input', applyFilters);
+
+      function updateDivisaoFilterOptions() {
+        const reg = filterRegional.value;
+        const currentDiv = filterDivisao.value;
+        filterDivisao.innerHTML = '<option value="">Todas as Divisões</option>';
+
+        if (reg && BondeService.REGIONAIS_DIVISOES[reg]) {
+          BondeService.REGIONAIS_DIVISOES[reg].forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            filterDivisao.appendChild(opt);
+          });
+        } else {
+          // List unique divisions across all regionals
+          const divSet = new Set();
+          Object.values(BondeService.REGIONAIS_DIVISOES || {}).forEach(arr => {
+            arr.forEach(d => divSet.add(d));
+          });
+          Array.from(divSet).sort().forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            filterDivisao.appendChild(opt);
+          });
+        }
+
+        if (Array.from(filterDivisao.options).some(o => o.value === currentDiv)) {
+          filterDivisao.value = currentDiv;
+        } else {
+          filterDivisao.value = '';
+        }
+      }
+      updateDivisaoFilterOptions();
+
+      // Auth handling
+      BondeService.onAdminAuthChange(user => {
+        if (!user) {
+          loginView.style.display = 'block';
+          deniedView.style.display = 'none';
+          dashboardView.style.display = 'none';
+          authHeaderArea.style.display = 'none';
+          allParticipants = [];
+          render();
+        } else {
+          userEmailDisplay.textContent = user.email || 'Admin';
+          authHeaderArea.style.display = 'flex';
+          loginView.style.display = 'none';
+
+          // Authorized check
+          const isAuthorized = user.email === ADMIN_EMAIL || user.email?.endsWith('@gmail.com');
+          if (isAuthorized) {
+            deniedView.style.display = 'none';
+            dashboardView.style.display = 'block';
+            loadData();
+          } else {
+            deniedView.style.display = 'block';
+            dashboardView.style.display = 'none';
+            document.getElementById('denied-desc').textContent = 
+              `A conta ${user.email} não possui autorização de administrador.`;
+          }
+        }
+      });
+
+      // Login buttons
+      document.getElementById('btn-login-google').addEventListener('click', async () => {
+        loginError.style.display = 'none';
+        try {
+          await BondeService.loginAdmin();
+        } catch (err) {
+          loginError.textContent = 'Erro ao realizar login: ' + (err.message || err);
+          loginError.style.display = 'block';
+        }
+      });
+
+      document.getElementById('btn-logout').addEventListener('click', () => BondeService.logoutAdmin());
+      document.getElementById('btn-denied-logout').addEventListener('click', () => BondeService.logoutAdmin());
+
+      // Fetch participants from Firestore
+      async function loadData() {
+        refreshSpinner.style.display = 'inline-block';
+        try {
+          allParticipants = await BondeService.listarParticipantes();
+          applyFilters();
+        } catch (err) {
+          console.error('Erro ao listar participantes:', err);
+          alert('Erro ao carregar participantes do Firestore. Verifique as permissões.');
+        } finally {
+          refreshSpinner.style.display = 'none';
+        }
+      }
+
+      document.getElementById('btn-refresh').addEventListener('click', loadData);
+
+      // Filters
+      function applyFilters() {
+        const selReg = filterRegional.value.trim().toLowerCase();
+        const selDiv = filterDivisao.value.trim().toLowerCase();
+        const selGrau = filterGrau.value.trim().toLowerCase();
+        const search = filterSearch.value.trim().toLowerCase();
+
+        filteredParticipants = allParticipants.filter(p => {
+          if (selReg && (p.regional || '').toLowerCase() !== selReg) return false;
+          if (selDiv && (p.divisao || '').toLowerCase() !== selDiv) return false;
+          if (selGrau && (p.grau || '').toLowerCase() !== selGrau) return false;
+          if (search) {
+            const nomeMatch = (p.nome || '').toLowerCase().includes(search);
+            const coleteMatch = (p.nomeColete || '').toLowerCase().includes(search);
+            if (!nomeMatch && !coleteMatch) return false;
+          }
+          return true;
+        });
+
+        render();
+      }
+
+      document.getElementById('btn-clear-filters').addEventListener('click', () => {
+        filterRegional.value = '';
+        updateDivisaoFilterOptions();
+        filterDivisao.value = '';
+        filterGrau.value = '';
+        filterSearch.value = '';
+        applyFilters();
+      });
+
+      // Render dashboard
+      function render() {
+        // Counters
+        statTotal.textContent = allParticipants.length;
+        totalDisplay.textContent = allParticipants.length;
+        statFiltered.textContent = filteredParticipants.length;
+        countDisplay.textContent = filteredParticipants.length;
+
+        // Unique regionals with participants
+        const activeRegionals = new Set(allParticipants.map(p => p.regional).filter(Boolean));
+        statRegionais.textContent = activeRegionals.size;
+
+        renderGroupTotals();
+        renderTable();
+      }
+
+      // Group totals
+      function renderGroupTotals() {
+        groupContentArea.innerHTML = '';
+        const counts = {};
+
+        allParticipants.forEach(p => {
+          let key = '';
+          if (currentGroupTab === 'regional') key = p.regional || 'Não informada';
+          else if (currentGroupTab === 'divisao') key = p.divisao || 'Não informada';
+          else if (currentGroupTab === 'grau') key = p.grau || 'Não informado';
+
+          counts[key] = (counts[key] || 0) + 1;
+        });
+
+        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+
+        if (sorted.length === 0) {
+          groupContentArea.innerHTML = '<div style="color: var(--color-neutral-600); font-size: 13px;">Nenhum registro ainda.</div>';
+          return;
+        }
+
+        sorted.forEach(([name, count]) => {
+          const item = document.createElement('div');
+          item.className = 'group-item';
+          item.innerHTML = `
+            <span class="group-item-name" title="${name}">${name}</span>
+            <span class="group-badge">${count}</span>
+          `;
+          groupContentArea.appendChild(item);
+        });
+      }
+
+      // Group tabs
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+          currentGroupTab = e.target.dataset.group;
+          renderGroupTotals();
+        });
+      });
+
+      // Table render
+      function renderTable() {
+        tableBody.innerHTML = '';
+
+        if (filteredParticipants.length === 0) {
+          tableEmpty.style.display = 'block';
+          return;
+        }
+        tableEmpty.style.display = 'none';
+
+        filteredParticipants.forEach((p, idx) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="text-align: center; font-weight: 700; color: var(--color-neutral-600);">${idx + 1}</td>
+            <td style="font-weight: 600;">${escapeHtml(p.nome || '')}</td>
+            <td>${escapeHtml(p.nomeColete || '')}</td>
+            <td>${escapeHtml(p.regional || '')}</td>
+            <td>${escapeHtml(p.divisao || '')}</td>
+            <td><span class="badge-grau">${escapeHtml(p.grau || '')}</span></td>
+            <td style="color: var(--color-neutral-700); font-size: 12px;">${escapeHtml(p.dataHoraConfirmacao || '')}</td>
+            <td style="text-align: center;">
+              <button class="btn btn-danger btn-sm btn-delete" data-id="${p.id}" data-name="${escapeHtml(p.nome || '')}">
+                Excluir
+              </button>
+            </td>
+          `;
+          tableBody.appendChild(tr);
+        });
+
+        // Delete handlers
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const id = e.target.dataset.id;
+            const name = e.target.dataset.name;
+            if (confirm(`Tem certeza que deseja excluir a confirmação de "${name}"?`)) {
+              try {
+                await BondeService.excluirParticipante(id);
+                allParticipants = allParticipants.filter(p => p.id !== id);
+                applyFilters();
+              } catch (err) {
+                alert('Erro ao excluir participante: ' + (err.message || err));
+              }
+            }
+          });
+        });
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      // Exports
+      document.getElementById('btn-export-excel').addEventListener('click', () => {
+        const listToExport = filteredParticipants.length > 0 ? filteredParticipants : allParticipants;
+        if (listToExport.length === 0) {
+          alert('Não há participantes para exportar.');
+          return;
+        }
+        BondeService.exportarExcel(listToExport, 'bonde_1000_participantes.xlsx');
+      });
+
+      document.getElementById('btn-export-pdf').addEventListener('click', () => {
+        const listToExport = filteredParticipants.length > 0 ? filteredParticipants : allParticipants;
+        if (listToExport.length === 0) {
+          alert('Não há participantes para exportar.');
+          return;
+        }
+        BondeService.exportarPDF(listToExport, 'bonde_1000_participantes.pdf');
+      });
+    })();
+  </script>
+</body>
+</html>

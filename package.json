@@ -6,9 +6,17 @@
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
-    "build": "node -e 'process.exit(0)'"
+    "build": "esbuild src/firebase-service.js --bundle --format=iife --global-name=BondeService --outfile=assets/bonde-bundle.js"
   },
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "firebase": "^12.19.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@firebase/eslint-plugin-security-rules": "^0.0.2",
+    "esbuild": "^0.28.2"
   }
 }

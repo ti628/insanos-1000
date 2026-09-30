@@ -8,6 +8,7 @@
 <meta property="og:title" content="2º Insanos Moto Fest">
 <meta property="og:description" content="Site e aplicativo oficial do 2º Insanos Moto Fest em Guaratuba com programação de bandas, 1º Bonde das 1000 Motos, camping e atrações.">
 <title>2º Insanos Moto Fest</title>
+<script src="assets/bonde-bundle.js"></script>
 <script src="assets/dc-runtime.js"></script>
 </head>
 <body>
@@ -12698,6 +12699,14 @@ a:hover{color:var(--color-accent-800)}
 .bottom-nav-inner{max-width:680px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);padding:8px 8px calc(10px + env(safe-area-inset-bottom,0px))}
 .sheet-backdrop{position:fixed;inset:0;z-index:60;background:color-mix(in srgb,var(--color-neutral-900) 55%,transparent);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center}
 .sheet-card{width:100%;max-width:640px;background:var(--color-bg);border-radius:24px 24px 0 0;padding:16px var(--space-4) calc(32px + env(safe-area-inset-bottom,0px));box-shadow:var(--shadow-lg);box-sizing:border-box}
+.bonde-modal-backdrop{position:fixed;inset:0;z-index:70;background:color-mix(in srgb,var(--color-neutral-900) 65%,transparent);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box}
+.bonde-modal-card{width:100%;max-width:500px;background:var(--color-bg);border-radius:18px;padding:24px 20px;box-shadow:var(--shadow-lg);box-sizing:border-box;max-height:90vh;overflow-y:auto}
+.bonde-field{margin-bottom:14px}
+.bonde-label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--color-neutral-800)}
+.bonde-input,.bonde-select{width:100%;box-sizing:border-box;padding:12px 14px;font-size:15px;font-family:inherit;background:var(--color-neutral-100);border:1px solid var(--color-divider);border-radius:var(--radius-md);color:var(--color-text);outline:none;transition:border-color 0.15s}
+.bonde-input:focus,.bonde-select:focus{border-color:var(--color-accent);background:var(--color-bg)}
+.bonde-alert-error{background:#fdf2f2;border:1px solid #f8b4b4;color:#c5221f;padding:10px 14px;border-radius:var(--radius-md);font-size:13px;font-weight:600;margin-bottom:16px}
+.bonde-summary-box{background:var(--color-neutral-100);border:1px solid var(--color-divider);border-radius:var(--radius-md);padding:16px;margin:16px 0;display:flex;flex-direction:column;gap:8px;font-size:14px}
 </style>
 </helmet>
 <div class="site-wrapper">
@@ -12891,16 +12900,205 @@ a:hover{color:var(--color-accent-800)}
 </div>
 </sc-if>
 
+<sc-if value="{{ bondeModalOpen }}" hint-placeholder-val="{{ false }}">
+<div class="bonde-modal-backdrop" sc-camel-on-click="{{ closeBondeModal }}">
+<div class="bonde-modal-card" sc-camel-on-click="{{ stop }}">
+
+<sc-if value="{{ bondeSuccess }}" hint-placeholder-val="{{ false }}">
+<div style="text-align:center;padding:8px 0">
+<div style="font-size:48px;color:var(--color-accent);margin-bottom:8px"><i class="ph-duotone ph-check-circle"></i></div>
+<div style="font-size:22px;font-weight:700;line-height:1.2;color:var(--color-accent-700)">Presença confirmada no 1º Bonde das 1000 Motos!</div>
+<div style="font-size:14px;color:var(--color-neutral-700);margin-top:6px">Dados cadastrados para conferência:</div>
+
+<div class="bonde-summary-box" style="text-align:left">
+<div><strong>Nome:</strong> {{ bondeSuccess.nome }}</div>
+<div><strong>Nome de Colete:</strong> {{ bondeSuccess.nomeColete }}</div>
+<div><strong>Regional:</strong> {{ bondeSuccess.regional }}</div>
+<div><strong>Divisão:</strong> {{ bondeSuccess.divisao }}</div>
+<div><strong>Grau:</strong> {{ bondeSuccess.grau }}</div>
+</div>
+
+<button class="btn btn-primary" sc-camel-on-click="{{ closeBondeModal }}" style="width:100%;padding:13px;font-size:15px;margin-top:4px">FECHAR</button>
+<button sc-camel-on-click="{{ resetBondeRegistration }}" style="all:unset;cursor:pointer;display:block;margin:14px auto 0;font-size:13px;color:var(--color-accent-700);text-decoration:underline">Cadastrar outro participante</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ !bondeSuccess }}" hint-placeholder-val="{{ true }}">
+<div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+<div>
+<div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-700)">1º Bonde das 1000 Motos</div>
+<div style="font-size:24px;font-weight:700;line-height:1.15;margin-top:2px">Confirmar Presença</div>
+</div>
+<button sc-camel-on-click="{{ closeBondeModal }}" style="all:unset;cursor:pointer;padding:6px;font-size:20px;color:var(--color-neutral-600)" aria-label="Fechar"><i class="ph-duotone ph-x"></i></button>
+</div>
+
+<sc-if value="{{ bondeError }}" hint-placeholder-val="{{ false }}">
+<div class="bonde-alert-error">{{ bondeError }}</div>
+</sc-if>
+
+<div class="bonde-field">
+<label class="bonde-label" for="bonde-nome">Nome *</label>
+<input id="bonde-nome" class="bonde-input" type="text" placeholder="Seu nome completo" value="{{ bondeNome }}" sc-camel-on-input="{{ onNomeInput }}" required>
+</div>
+
+<div class="bonde-field">
+<label class="bonde-label" for="bonde-colete">Nome de Colete *</label>
+<input id="bonde-colete" class="bonde-input" type="text" placeholder="Nome de colete" value="{{ bondeColete }}" sc-camel-on-input="{{ onColeteInput }}" required>
+</div>
+
+<div class="bonde-field">
+<label class="bonde-label" for="bonde-regional">Regional *</label>
+<select id="bonde-regional" class="bonde-select" sc-camel-on-change="{{ onRegionalChange }}">
+<option value="">Selecione a Regional</option>
+<sc-for list="{{ bondeRegionaisList }}" as="r">
+<option value="{{ r }}">{{ r }}</option>
+</sc-for>
+</select>
+</div>
+
+<div class="bonde-field">
+<label class="bonde-label" for="bonde-divisao">Divisão *</label>
+<select id="bonde-divisao" class="bonde-select" sc-camel-on-change="{{ onDivisaoChange }}">
+<option value="">{{ bondeDivisaoPlaceholder }}</option>
+<sc-for list="{{ bondeDivisoesList }}" as="d">
+<option value="{{ d }}">{{ d }}</option>
+</sc-for>
+</select>
+</div>
+
+<div class="bonde-field">
+<label class="bonde-label" for="bonde-grau">Grau *</label>
+<select id="bonde-grau" class="bonde-select" sc-camel-on-change="{{ onGrauChange }}">
+<option value="">Selecione o Grau</option>
+<sc-for list="{{ bondeGrausList }}" as="g">
+<option value="{{ g }}">{{ g }}</option>
+</sc-for>
+</select>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px;margin-top:20px">
+<button class="btn btn-primary" sc-camel-on-click="{{ submitBonde }}" style="width:100%;padding:14px;font-size:15px">
+<sc-if value="{{ bondeSubmitting }}" hint-placeholder-val="{{ false }}">Gravando...</sc-if>
+<sc-if value="{{ !bondeSubmitting }}" hint-placeholder-val="{{ true }}">CONFIRMAR PRESENÇA</sc-if>
+</button>
+<button class="btn btn-secondary" sc-camel-on-click="{{ closeBondeModal }}" style="width:100%;padding:12px;font-size:14px">CANCELAR</button>
+</div>
+</div>
+</sc-if>
+
+</div>
+</div>
+</sc-if>
+
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script="" data-props="{&quot;startTab&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;inicio&quot;,&quot;bandas&quot;,&quot;bonde&quot;,&quot;camping&quot;,&quot;festa&quot;],&quot;default&quot;:&quot;inicio&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;photoTreatment&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;halftone&quot;,&quot;natural&quot;],&quot;default&quot;:&quot;natural&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showCountdown&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
 class Component extends DCLogic {
-  state = { tab: this.props.startTab ?? 'inicio', day: 'sab', fav: {}, sheet: null, bonde: false, now: Date.now() };
+  constructor(props) {
+    super(props);
+    let savedConf = null;
+    try {
+      savedConf = JSON.parse(localStorage.getItem('bonde_confirmed_data') || 'null');
+    } catch(e) {}
+    this.state = {
+      tab: this.props.startTab ?? 'inicio',
+      day: 'sab',
+      fav: {},
+      sheet: null,
+      bonde: !!savedConf,
+      bondeSuccess: savedConf,
+      bondeModalOpen: false,
+      bondeError: null,
+      bondeSubmitting: false,
+      bondeNome: '',
+      bondeColete: '',
+      bondeRegional: '',
+      bondeDivisao: '',
+      bondeGrau: '',
+      now: Date.now()
+    };
+  }
   scrollRef = React.createRef();
   componentDidMount() { this.timer = setInterval(() => this.setState({ now: Date.now() }), 30000); }
   componentWillUnmount() { clearInterval(this.timer); }
   go(tab) { this.setState({ tab, sheet: null }); if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; window.scrollTo(0, 0); }
   toggleFav(id) { this.setState(s => ({ fav: { ...s.fav, [id]: !s.fav[id] } })); }
+
+  onRegionalChange(e) {
+    const val = (e && e.target ? e.target.value : '').trim();
+    this.setState({ bondeRegional: val, bondeDivisao: '', bondeError: null });
+    const divEl = document.getElementById('bonde-divisao');
+    if (divEl) divEl.value = '';
+  }
+  onDivisaoChange(e) {
+    const val = (e && e.target ? e.target.value : '').trim();
+    this.setState({ bondeDivisao: val, bondeError: null });
+  }
+  onGrauChange(e) {
+    const val = (e && e.target ? e.target.value : '').trim();
+    this.setState({ bondeGrau: val, bondeError: null });
+  }
+  onNomeInput(e) {
+    const val = e && e.target ? e.target.value : '';
+    this.setState({ bondeNome: val, bondeError: null });
+  }
+  onColeteInput(e) {
+    const val = e && e.target ? e.target.value : '';
+    this.setState({ bondeColete: val, bondeError: null });
+  }
+
+  async submitBonde() {
+    const s = this.state;
+    const nome = (s.bondeNome || document.getElementById('bonde-nome')?.value || '').trim();
+    const nomeColete = (s.bondeColete || document.getElementById('bonde-colete')?.value || '').trim();
+    const regional = (s.bondeRegional || document.getElementById('bonde-regional')?.value || '').trim();
+    const divisao = (s.bondeDivisao || document.getElementById('bonde-divisao')?.value || '').trim();
+    const grau = (s.bondeGrau || document.getElementById('bonde-grau')?.value || '').trim();
+
+    if (!nome || !nomeColete || !regional || !divisao || !grau) {
+      this.setState({ bondeError: 'Por favor, preencha todos os campos obrigatórios.' });
+      return;
+    }
+
+    this.setState({ bondeSubmitting: true, bondeError: null });
+    try {
+      if (!window.BondeService) {
+        throw new Error('Serviço de cadastro temporariamente indisponível.');
+      }
+      const res = await window.BondeService.confirmarPresenca({ nome, nomeColete, regional, divisao, grau });
+      if (!res.success) {
+        this.setState({ bondeError: res.error, bondeSubmitting: false });
+      } else {
+        try { localStorage.setItem('bonde_confirmed_data', JSON.stringify(res.data)); } catch(e){}
+        this.setState({
+          bondeSuccess: res.data,
+          bondeError: null,
+          bondeSubmitting: false,
+          bonde: true,
+          bondeNome: '',
+          bondeColete: '',
+          bondeRegional: '',
+          bondeDivisao: '',
+          bondeGrau: ''
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      this.setState({ bondeError: 'Erro ao confirmar presença. Tente novamente.', bondeSubmitting: false });
+    }
+  }
+
+  openBondeModal() {
+    this.setState({ bondeModalOpen: true, bondeError: null });
+  }
+  closeBondeModal() {
+    this.setState({ bondeModalOpen: false, bondeError: null });
+  }
+  resetBondeRegistration() {
+    this.setState({ bondeSuccess: null, bondeError: null });
+  }
+
   renderVals() {
     const s = this.state;
     const BANDS = {
@@ -12939,7 +13137,29 @@ class Component extends DCLogic {
       days: ['sab','dom'].map(d => ({ label: dayName[d], pick: () => this.setState({ day: d }), bg: s.day === d ? 'var(--color-accent)' : 'transparent', fg: s.day === d ? 'var(--color-bg)' : 'var(--color-text)' })),
       bands: BANDS[s.day].map(r => mk(s.day, r)),
       sheetOpen: !!sheet, sheet: sheet || {}, closeSheet: () => this.setState({ sheet: null }), stop: (e) => e.stopPropagation(),
-      toggleBonde: () => this.setState({ bonde: !s.bonde }),
+      bondeModalOpen: !!s.bondeModalOpen,
+      bondeSuccess: s.bondeSuccess,
+      bondeError: s.bondeError,
+      bondeSubmitting: !!s.bondeSubmitting,
+      bondeNome: s.bondeNome || '',
+      bondeColete: s.bondeColete || '',
+      bondeRegional: s.bondeRegional || '',
+      bondeDivisao: s.bondeDivisao || '',
+      bondeGrau: s.bondeGrau || '',
+      bondeRegionaisList: (window.BondeService && window.BondeService.REGIONAIS) ? window.BondeService.REGIONAIS : [],
+      bondeGrausList: (window.BondeService && window.BondeService.GRAUS) ? window.BondeService.GRAUS : [],
+      bondeDivisoesList: (window.BondeService && s.bondeRegional && window.BondeService.REGIONAIS_DIVISOES) ? (window.BondeService.REGIONAIS_DIVISOES[s.bondeRegional] || []) : [],
+      bondeDivisaoPlaceholder: s.bondeRegional ? 'Selecione a Divisão' : 'Selecione primeiro a Regional',
+      openBondeModal: () => this.openBondeModal(),
+      closeBondeModal: () => this.closeBondeModal(),
+      resetBondeRegistration: () => this.resetBondeRegistration(),
+      onRegionalChange: (e) => this.onRegionalChange(e),
+      onDivisaoChange: (e) => this.onDivisaoChange(e),
+      onGrauChange: (e) => this.onGrauChange(e),
+      onNomeInput: (e) => this.onNomeInput(e),
+      onColeteInput: (e) => this.onColeteInput(e),
+      submitBonde: () => this.submitBonde(),
+      toggleBonde: () => this.openBondeModal(),
       bondeIcon: s.bonde ? 'ph-duotone ph-check-circle' : 'ph-duotone ph-hand-fist',
       bondeLabel: s.bonde ? 'Presença confirmada no bonde' : 'Vou no bonde',
       amenities: [['ph-shower','Local com banheiros amplos'],['ph-drop','Chuveiro quente'],['ph-shield-check','Portaria 24hrs'],['ph-plug','Tomada para as barracas'],['ph-fork-knife','Refeitórios']].map(([i, label]) => ({ icon: `ph-duotone ${i}`, label })),

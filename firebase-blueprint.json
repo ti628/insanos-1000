@@ -1,0 +1,90 @@
+{
+  "entities": {
+    "Participant": {
+      "title": "Participant",
+      "description": "Participante confirmado no 1º Bonde das 1000 Motos",
+      "type": "object",
+      "properties": {
+        "nome": {
+          "type": "string",
+          "description": "Nome completo do participante",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "nomeColete": {
+          "type": "string",
+          "description": "Nome de colete do participante",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "regional": {
+          "type": "string",
+          "description": "Regional do participante",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "divisao": {
+          "type": "string",
+          "description": "Divisão do participante",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "grau": {
+          "type": "string",
+          "description": "Grau do participante",
+          "enum": [
+            "Camiseta / PP X",
+            "Meio escudo IX",
+            "Full XIII",
+            "Cargo XI",
+            "Regional V",
+            "Grau IV",
+            "Brasil III"
+          ]
+        },
+        "evento": {
+          "type": "string",
+          "description": "Nome do evento"
+        },
+        "dataEvento": {
+          "type": "string",
+          "description": "Data do evento"
+        },
+        "horarioSaida": {
+          "type": "string",
+          "description": "Horário de saída do bonde"
+        },
+        "localConcentracao": {
+          "type": "string",
+          "description": "Local de concentração"
+        },
+        "dataHoraConfirmacao": {
+          "type": "string",
+          "description": "Data e hora da confirmação"
+        },
+        "lookupKey": {
+          "type": "string",
+          "description": "Chave única composta para prevenção de duplicidade"
+        }
+      },
+      "required": [
+        "nome",
+        "nomeColete",
+        "regional",
+        "divisao",
+        "grau",
+        "evento",
+        "dataEvento",
+        "horarioSaida",
+        "localConcentracao",
+        "dataHoraConfirmacao"
+      ]
+    }
+  },
+  "firestore": {
+    "/bonde_1000/{participantId}": {
+      "schema": "Participant",
+      "description": "Confirmações de presença no 1º Bonde das 1000 Motos"
+    }
+  }
+}
