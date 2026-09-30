@@ -449,12 +449,25 @@
     <div id="login-view" class="auth-container">
       <div style="font-size: 48px; margin-bottom: 12px;">🔒</div>
       <h2 class="auth-title">Acesso Administrativo</h2>
-      <p class="auth-desc">Esta área é restrita aos organizadores do evento. Conecte-se com sua conta Google autorizada para visualizar e gerenciar os participantes.</p>
-      <button id="btn-login-google" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 15px;">
-        <svg width="18" height="18" viewBox="0 0 24 24" style="margin-right: 4px;"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#fff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#fff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-        Entrar com Google
-      </button>
-      <div id="login-error" style="display: none; margin-top: 16px; padding: 10px; border-radius: var(--radius-md); background: #fdf2f2; color: var(--color-danger); font-size: 13px;"></div>
+      <p class="auth-desc">Esta área é restrita à administração do 1º Bonde das 1000 Motos. Entre com seu e-mail e senha de administrador.</p>
+      
+      <form id="admin-login-form" style="display: flex; flex-direction: column; gap: 14px; text-align: left;">
+        <div class="form-group">
+          <label class="form-label" for="login-email">E-mail</label>
+          <input type="email" id="login-email" class="form-control" placeholder="biorinsanos@gmail.com" required autocomplete="email">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="login-password">Senha</label>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+
+        <button type="submit" id="btn-login-submit" class="btn btn-primary" style="width: 100%; padding: 13px; font-size: 15px; margin-top: 6px;">
+          ENTRAR
+        </button>
+      </form>
+
+      <div id="login-error" style="display: none; margin-top: 16px; padding: 10px; border-radius: var(--radius-md); background: #fdf2f2; color: var(--color-danger); font-size: 13px; font-weight: 600;"></div>
     </div>
 
     <!-- Access Denied View -->
@@ -586,7 +599,7 @@
   <script src="assets/bonde-bundle.js"></script>
   <script>
     (function() {
-      const ADMIN_EMAIL = 'suporte.cortesa@gmail.com';
+      const ADMIN_EMAIL = 'biorinsanos@gmail.com';
       let allParticipants = [];
       let filteredParticipants = [];
       let currentGroupTab = 'regional';
@@ -676,7 +689,7 @@
       updateDivisaoFilterOptions();
 
       // Auth handling
-      BondeService.onAdminAuthChange(user => {
+      BondeService.onAdminAuthChange(async user => {
         if (!user) {
           loginView.style.display = 'block';
           deniedView.style.display = 'none';
@@ -685,33 +698,73 @@
           allParticipants = [];
           render();
         } else {
-          userEmailDisplay.textContent = user.email || 'Admin';
+          // Strictly verify if email is biorinsanos@gmail.com
+          if (user.email !== ADMIN_EMAIL) {
+            await BondeService.logoutAdmin();
+            loginView.style.display = 'block';
+            deniedView.style.display = 'none';
+            dashboardView.style.display = 'none';
+            authHeaderArea.style.display = 'none';
+            loginError.textContent = 'Acesso não autorizado.';
+            loginError.style.display = 'block';
+            return;
+          }
+
+          userEmailDisplay.textContent = user.email;
           authHeaderArea.style.display = 'flex';
           loginView.style.display = 'none';
-
-          // Authorized check
-          const isAuthorized = user.email === ADMIN_EMAIL || user.email?.endsWith('@gmail.com');
-          if (isAuthorized) {
-            deniedView.style.display = 'none';
-            dashboardView.style.display = 'block';
-            loadData();
-          } else {
-            deniedView.style.display = 'block';
-            dashboardView.style.display = 'none';
-            document.getElementById('denied-desc').textContent = 
-              `A conta ${user.email} não possui autorização de administrador.`;
-          }
+          deniedView.style.display = 'none';
+          dashboardView.style.display = 'block';
+          loadData();
         }
       });
 
-      // Login buttons
-      document.getElementById('btn-login-google').addEventListener('click', async () => {
+      // Email & Password login form submission
+      const loginForm = document.getElementById('admin-login-form');
+      const loginEmailInput = document.getElementById('login-email');
+      const loginPasswordInput = document.getElementById('login-password');
+      const btnLoginSubmit = document.getElementById('btn-login-submit');
+
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
         loginError.style.display = 'none';
-        try {
-          await BondeService.loginAdmin();
-        } catch (err) {
-          loginError.textContent = 'Erro ao realizar login: ' + (err.message || err);
+        const email = (loginEmailInput.value || '').trim();
+        const password = loginPasswordInput.value || '';
+
+        if (!email || !password) {
+          loginError.textContent = 'Preencha o e-mail e a senha.';
           loginError.style.display = 'block';
+          return;
+        }
+
+        btnLoginSubmit.disabled = true;
+        btnLoginSubmit.textContent = 'Entrando...';
+
+        try {
+          const userCredential = await BondeService.loginAdmin(email, password);
+          const user = userCredential.user;
+          if (user.email !== ADMIN_EMAIL) {
+            await BondeService.logoutAdmin();
+            loginError.textContent = 'Acesso não autorizado.';
+            loginError.style.display = 'block';
+          }
+          // If authorized, onAdminAuthChange automatically displays dashboard
+        } catch (err) {
+          console.error(err);
+          let msg = 'Erro ao realizar login.';
+          const code = err.code || '';
+          if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
+            msg = 'E-mail ou senha incorretos.';
+          } else if (code === 'auth/too-many-requests') {
+            msg = 'Muitas tentativas sem sucesso. Aguarde um momento.';
+          } else if (err.message) {
+            msg = err.message;
+          }
+          loginError.textContent = msg;
+          loginError.style.display = 'block';
+        } finally {
+          btnLoginSubmit.disabled = false;
+          btnLoginSubmit.textContent = 'ENTRAR';
         }
       });
 

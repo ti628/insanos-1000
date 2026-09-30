@@ -45419,19 +45419,6 @@ This typically indicates that your device does not have a healthy Internet conne
   function _serverAppCurrentUserOperationNotSupportedError(auth2) {
     return _errorWithCustomMessage(auth2, "operation-not-supported-in-this-environment", "Operations that alter the current user are not supported in conjunction with FirebaseServerApp");
   }
-  function _assertInstanceOf(auth2, object, instance) {
-    const constructorInstance = instance;
-    if (!(object instanceof constructorInstance)) {
-      if (constructorInstance.name !== object.constructor.name) {
-        _fail(
-          auth2,
-          "argument-error"
-          /* AuthErrorCode.ARGUMENT_ERROR */
-        );
-      }
-      throw _errorWithCustomMessage(auth2, "argument-error", `Type of ${object.constructor.name} does not match expected instance.Did you pass a reference from a different Auth SDK?`);
-    }
-  }
   function createErrorInternal(authOrCode, ...rest) {
     if (typeof authOrCode !== "string") {
       const code = rest[0];
@@ -49000,6 +48987,26 @@ This typically indicates that your device does not have a healthy Internet conne
     }
     return userCredential;
   }
+  async function signInWithCredential(auth2, credential) {
+    return _signInWithCredential(_castAuth(auth2), credential);
+  }
+  async function recachePasswordPolicy(auth2) {
+    const authInternal = _castAuth(auth2);
+    if (authInternal._getPasswordPolicyInternal()) {
+      await authInternal._updatePasswordPolicy();
+    }
+  }
+  function signInWithEmailAndPassword(auth2, email, password) {
+    if (_isFirebaseServerApp(auth2.app)) {
+      return Promise.reject(_serverAppCurrentUserOperationNotSupportedError(auth2));
+    }
+    return signInWithCredential(getModularInstance(auth2), EmailAuthProvider.credential(email, password)).catch(async (error) => {
+      if (error.code === `auth/${"password-does-not-meet-requirements"}`) {
+        void recachePasswordPolicy(auth2);
+      }
+      throw error;
+    });
+  }
   function onIdTokenChanged(auth2, nextOrObserver, error, completed) {
     return getModularInstance(auth2).onIdTokenChanged(nextOrObserver, error, completed);
   }
@@ -50396,20 +50403,6 @@ This typically indicates that your device does not have a healthy Internet conne
     }
   };
   var _POLL_WINDOW_CLOSE_TIMEOUT = new Delay(2e3, 1e4);
-  async function signInWithPopup(auth2, provider, resolver) {
-    if (_isFirebaseServerApp(auth2.app)) {
-      return Promise.reject(_createError(
-        auth2,
-        "operation-not-supported-in-this-environment"
-        /* AuthErrorCode.OPERATION_NOT_SUPPORTED */
-      ));
-    }
-    const authInternal = _castAuth(auth2);
-    _assertInstanceOf(auth2, provider, FederatedAuthProvider);
-    const resolverInternal = _withDefaultResolver(authInternal, resolver);
-    const action = new PopupOperation(authInternal, "signInViaPopup", provider, resolverInternal);
-    return action.executeNotNull();
-  }
   var PopupOperation = class _PopupOperation extends AbstractPopupRedirectOperation {
     constructor(auth2, filter, provider, resolver, user) {
       super(auth2, filter, resolver, user);
@@ -87769,9 +87762,8 @@ This typically indicates that your device does not have a healthy Internet conne
     doc2.setFontSize(10);
     doc2.text("Data: 10 de outubro de 2026", 14, 31);
   }
-  async function loginAdmin() {
-    const provider = new GoogleAuthProvider();
-    return await signInWithPopup(auth, provider);
+  async function loginAdmin(email, password) {
+    return await signInWithEmailAndPassword(auth, email, password);
   }
   async function logoutAdmin() {
     return await signOut(auth);
@@ -87779,6 +87771,7 @@ This typically indicates that your device does not have a healthy Internet conne
   function onAdminAuthChange(callback) {
     return onAuthStateChanged(auth, callback);
   }
+  testConnection();
   return __toCommonJS(firebase_service_exports);
 })();
 /*! Bundled license information:
@@ -88004,6 +87997,7 @@ firebase/app/dist/esm/index.esm.js:
 @firebase/firestore/dist/index.esm.js:
 @firebase/firestore/dist/index.esm.js:
 @firebase/firestore/dist/index.esm.js:
+@firebase/auth/dist/esm/index-4NFEPWkC.js:
 @firebase/auth/dist/esm/index-4NFEPWkC.js:
 @firebase/auth/dist/esm/index-4NFEPWkC.js:
 @firebase/auth/dist/esm/index-4NFEPWkC.js:

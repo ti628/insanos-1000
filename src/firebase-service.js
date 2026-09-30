@@ -11,8 +11,7 @@ import {
 } from 'firebase/firestore';
 import { 
   getAuth, 
-  GoogleAuthProvider, 
-  signInWithPopup, 
+  signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged 
 } from 'firebase/auth';
@@ -264,9 +263,8 @@ function docDate(doc) {
   doc.text('Data: 10 de outubro de 2026', 14, 31);
 }
 
-export async function loginAdmin() {
-  const provider = new GoogleAuthProvider();
-  return await signInWithPopup(auth, provider);
+export async function loginAdmin(email, password) {
+  return await signInWithEmailAndPassword(auth, email, password);
 }
 
 export async function logoutAdmin() {
