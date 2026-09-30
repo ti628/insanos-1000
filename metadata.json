@@ -1,0 +1,7 @@
+{
+  "name": "2º Insanos Moto Fest",
+  "description": "Site e aplicativo oficial do 2º Insanos Moto Fest em Guaratuba com programação de bandas, 1º Bonde das 1000 Motos, camping e atrações.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
