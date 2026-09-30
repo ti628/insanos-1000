@@ -87547,6 +87547,76 @@ This typically indicates that your device does not have a healthy Internet conne
       "Divis\xE3o Porto Amazonas",
       "Divis\xE3o Campo do Tenente",
       "Divis\xE3o Cruz Machado"
+    ],
+    "REGIONAL CHAPEC\xD3": [
+      "Divis\xE3o Passo Fundo",
+      "Divis\xE3o Norte Ga\xFAcho",
+      "Divis\xE3o S\xE3o Louren\xE7o do Oeste",
+      "Divis\xE3o Chapec\xF3",
+      "Divis\xE3o Ponte Serrada",
+      "Divis\xE3o Xanxer\xEA",
+      "Divis\xE3o Oeste Catarinense"
+    ],
+    "REGIONAL CONC\xD3RDIA": [
+      "Divis\xE3o Conc\xF3rdia",
+      "Divis\xE3o Ca\xE7ador",
+      "Divis\xE3o Videira"
+    ],
+    "REGIONAL FLORIANOPOLIS": [
+      "Divis\xE3o Florianopolis",
+      "Divis\xE3o Crici\xFAma",
+      "Divis\xE3o Tubar\xE3o",
+      "Divis\xE3o Palho\xE7a",
+      "Divis\xE3o S\xE3o Jos\xE9",
+      "Divis\xE3o Passo de Torres"
+    ],
+    "REGIONAL LITORAL LESTE": [
+      "Divis\xE3o Balne\xE1rio Cambori\xFA",
+      "Divis\xE3o Brusque",
+      "Divis\xE3o Cambori\xFA",
+      "Divis\xE3o Balne\xE1rio Cambori\xFA Sul",
+      "Divis\xE3o Cambori\xFA Sul"
+    ],
+    "REGIONAL LITORAL NORTE": [
+      "Divis\xE3o S\xE3o Fco do Sul",
+      "Divis\xE3o Joinville",
+      "Divis\xE3o Araquari",
+      "Divis\xE3o Joinville Norte",
+      "Divis\xE3o Itapo\xE1",
+      "Divis\xE3o Joinville Leste",
+      "Divis\xE3o Itapoa Norte"
+    ],
+    "REGIONAL LITORAL SUL": [
+      "Divis\xE3o Tijucas",
+      "Divis\xE3o Itapema",
+      "Divis\xE3o Bombinhas",
+      "Divis\xE3o Porto Belo"
+    ],
+    "REGIONAL PLANALTO NORTE": [
+      "Divis\xE3o Jaragu\xE1 do Sul",
+      "Divis\xE3o Guaramirim",
+      "Divis\xE3o Canoinhas",
+      "Divis\xE3o Rio Negrinho",
+      "Divis\xE3o Mafra",
+      "Divis\xE3o S\xE3o Bento do Sul",
+      "Divis\xE3o Schroeder",
+      "Divis\xE3o Porto Uni\xE3o",
+      "Divis\xE3o Campo Alegre",
+      "Divis\xE3o Corup\xE1"
+    ],
+    "REGIONAL VALE DO ITAJA\xCD": [
+      "Divis\xE3o Itaja\xED Leste",
+      "Divis\xE3o Penha",
+      "Divis\xE3o Navegantes",
+      "Divis\xE3o Barra Velha",
+      "Divis\xE3o Balne\xE1rio Pi\xE7arras",
+      "Divis\xE3o Itaja\xED Oeste",
+      "Divis\xE3o Ilhota"
+    ],
+    "REGIONAL VALE EUROPEU": [
+      "Divis\xE3o Blumenau",
+      "Divis\xE3o Alto Vale",
+      "Divis\xE3o Indaial"
     ]
   };
   var REGIONAIS = Object.keys(REGIONAIS_DIVISOES);

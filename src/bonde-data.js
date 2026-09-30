@@ -175,6 +175,76 @@ export const REGIONAIS_DIVISOES = {
     'Divisão Porto Amazonas',
     'Divisão Campo do Tenente',
     'Divisão Cruz Machado'
+  ],
+  'REGIONAL CHAPECÓ': [
+    'Divisão Passo Fundo',
+    'Divisão Norte Gaúcho',
+    'Divisão São Lourenço do Oeste',
+    'Divisão Chapecó',
+    'Divisão Ponte Serrada',
+    'Divisão Xanxerê',
+    'Divisão Oeste Catarinense'
+  ],
+  'REGIONAL CONCÓRDIA': [
+    'Divisão Concórdia',
+    'Divisão Caçador',
+    'Divisão Videira'
+  ],
+  'REGIONAL FLORIANOPOLIS': [
+    'Divisão Florianopolis',
+    'Divisão Criciúma',
+    'Divisão Tubarão',
+    'Divisão Palhoça',
+    'Divisão São José',
+    'Divisão Passo de Torres'
+  ],
+  'REGIONAL LITORAL LESTE': [
+    'Divisão Balneário Camboriú',
+    'Divisão Brusque',
+    'Divisão Camboriú',
+    'Divisão Balneário Camboriú Sul',
+    'Divisão Camboriú Sul'
+  ],
+  'REGIONAL LITORAL NORTE': [
+    'Divisão São Fco do Sul',
+    'Divisão Joinville',
+    'Divisão Araquari',
+    'Divisão Joinville Norte',
+    'Divisão Itapoá',
+    'Divisão Joinville Leste',
+    'Divisão Itapoa Norte'
+  ],
+  'REGIONAL LITORAL SUL': [
+    'Divisão Tijucas',
+    'Divisão Itapema',
+    'Divisão Bombinhas',
+    'Divisão Porto Belo'
+  ],
+  'REGIONAL PLANALTO NORTE': [
+    'Divisão Jaraguá do Sul',
+    'Divisão Guaramirim',
+    'Divisão Canoinhas',
+    'Divisão Rio Negrinho',
+    'Divisão Mafra',
+    'Divisão São Bento do Sul',
+    'Divisão Schroeder',
+    'Divisão Porto União',
+    'Divisão Campo Alegre',
+    'Divisão Corupá'
+  ],
+  'REGIONAL VALE DO ITAJAÍ': [
+    'Divisão Itajaí Leste',
+    'Divisão Penha',
+    'Divisão Navegantes',
+    'Divisão Barra Velha',
+    'Divisão Balneário Piçarras',
+    'Divisão Itajaí Oeste',
+    'Divisão Ilhota'
+  ],
+  'REGIONAL VALE EUROPEU': [
+    'Divisão Blumenau',
+    'Divisão Alto Vale',
+    'Divisão Indaial'
   ]
 };
 

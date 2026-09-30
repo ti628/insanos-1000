@@ -12826,6 +12826,93 @@ a:hover{color:var(--color-accent-800)}
 <div style="display:grid;grid-template-columns:28px 1fr;gap:var(--space-2);align-items:center;padding:12px 0;border-bottom:1px solid var(--color-divider)"><i class="{{ a.icon }}" style="font-size:22px;color:var(--color-accent)"></i><span style="font-size:16px">{{ a.label }}</span></div>
 </sc-for>
 </div>
+
+<div style="margin-top:var(--space-8);background:var(--color-neutral-100);border:1px solid var(--color-divider);border-radius:var(--radius-lg);padding:22px 18px">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+<span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-700);font-weight:700">Valores e Regras</span>
+<span class="tag tag-accent-2" style="font-size:13px;font-weight:700">R$ 35,00 por pessoa / diária</span>
+</div>
+<h3 style="font-size:22px;font-weight:700;line-height:1.2;margin-bottom:16px">REGRAS DO CAMPING</h3>
+<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:12px;font-size:14px;line-height:1.45;color:var(--color-neutral-800)">
+<li style="display:flex;align-items:baseline;gap:8px"><i class="ph-bold ph-check" style="color:var(--color-accent);flex-shrink:0"></i><span>A diária custa <strong>R$ 35,00 por pessoa</strong>.</span></li>
+<li style="display:flex;align-items:baseline;gap:8px"><i class="ph-bold ph-check" style="color:var(--color-accent);flex-shrink:0"></i><span>O horário padrão de checkout é às <strong>18:00 do dia seguinte ao check-in</strong>.</span></li>
+<li style="display:flex;align-items:baseline;gap:8px"><i class="ph-bold ph-check" style="color:var(--color-accent);flex-shrink:0"></i><span>Se o check-in for realizado na <strong>sexta-feira</strong>, o checkout será no <strong>sábado às 18:00</strong>.</span></li>
+<li style="display:flex;align-items:baseline;gap:8px"><i class="ph-bold ph-check" style="color:var(--color-accent);flex-shrink:0"></i><span>Se o check-in for realizado no <strong>sábado às 18:00</strong>, o checkout será no <strong>domingo às 18:00</strong>.</span></li>
+<li style="display:flex;align-items:baseline;gap:8px"><i class="ph-bold ph-check" style="color:var(--color-accent);flex-shrink:0"></i><div>
+<span>Se a pessoa fizer check-in na <strong>sexta-feira</strong> e permanecer até <strong>segunda-feira</strong>, serão cobradas <strong>3 diárias</strong>:</span>
+<div style="margin-top:6px;padding-left:12px;color:var(--color-neutral-700);font-size:13px">
+sexta → sábado<br>
+sábado → domingo<br>
+domingo → segunda
+</div>
+</div></li>
+</ul>
+<div style="margin-top:16px;padding:12px 14px;border-radius:var(--radius-md);background:var(--color-bg);border-left:4px solid var(--color-accent);font-size:13px;line-height:1.45">
+<strong style="color:var(--color-accent-700)">IMPORTANTE:</strong> A cobrança deve ser calculada pela quantidade de períodos de 24 horas entre o check-in e o checkout, considerando o horário de checkout às 18:00.
+</div>
+</div>
+
+<div id="simulador-camping" style="margin-top:var(--space-6);background:var(--color-bg);border:2px solid var(--color-accent);border-radius:var(--radius-lg);padding:22px 18px;box-shadow:var(--shadow-sm)">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+<i class="ph-duotone ph-calculator" style="font-size:26px;color:var(--color-accent)"></i>
+<h3 style="font-size:22px;font-weight:700;line-height:1.2">SIMULAÇÃO DE CAMPING</h3>
+</div>
+<p style="font-size:13px;color:var(--color-neutral-700);margin-bottom:18px">Simule o valor da estadia calculando automaticamente as diárias e o valor total.</p>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div class="bonde-field" style="margin-bottom:12px">
+<label class="bonde-label" for="camping-pessoas">Quantidade de pessoas</label>
+<input id="camping-pessoas" class="bonde-input" type="number" min="1" max="100" value="{{ campingPessoas }}" sc-camel-on-input="{{ onCampingPessoasInput }}">
+</div>
+
+<div class="bonde-field" style="margin-bottom:12px">
+<label class="bonde-label" for="camping-checkin-time">Horário do check-in</label>
+<input id="camping-checkin-time" class="bonde-input" type="time" value="{{ campingCheckinTime }}" sc-camel-on-input="{{ onCampingTimeInput }}">
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div class="bonde-field" style="margin-bottom:12px">
+<label class="bonde-label" for="camping-checkin-day">Dia do check-in</label>
+<select id="camping-checkin-day" class="bonde-select" sc-camel-on-change="{{ onCampingCheckinDayChange }}">
+<sc-for list="{{ campingCheckinDaysList }}" as="cd">
+<option value="{{ cd.id }}">{{ cd.label }}</option>
+</sc-for>
+</select>
+</div>
+
+<div class="bonde-field" style="margin-bottom:12px">
+<label class="bonde-label" for="camping-checkout-day">Dia do checkout (às 18:00)</label>
+<select id="camping-checkout-day" class="bonde-select" sc-camel-on-change="{{ onCampingCheckoutDayChange }}">
+<sc-for list="{{ campingCheckoutDaysList }}" as="cod">
+<option value="{{ cod.id }}">{{ cod.label }}</option>
+</sc-for>
+</select>
+</div>
+</div>
+
+<div style="background:var(--color-neutral-100);border:1px solid var(--color-divider);border-radius:var(--radius-md);padding:16px;margin-top:8px">
+<div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-700);font-weight:700;margin-bottom:10px">Resultado da Simulação</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;color:var(--color-neutral-800)">
+<div>DIÁRIAS: <span id="disp-sim-diarias" style="font-weight:700;color:var(--color-accent-700);font-size:16px">{{ campingDiarias }}</span></div>
+<div>PESSOAS: <span id="disp-sim-pessoas" style="font-weight:700;color:var(--color-accent-700);font-size:16px">{{ campingPessoas }}</span></div>
+<div style="grid-column:span 2;padding-top:6px;border-top:1px dashed var(--color-divider);font-size:13px">
+VALOR POR DIÁRIA/PESSOA: <span style="font-weight:700;color:var(--color-neutral-800)">R$ 35,00</span>
+</div>
+</div>
+
+<div style="margin-top:14px;padding-top:12px;border-top:2px solid var(--color-divider);display:flex;align-items:baseline;justify-content:space-between">
+<span style="font-size:16px;font-weight:700;letter-spacing:.02em">TOTAL:</span>
+<span id="disp-sim-total" style="font-size:28px;font-weight:800;color:var(--color-accent)">{{ campingTotalFormatted }}</span>
+</div>
+
+<div style="margin-top:12px;font-size:12px;font-style:italic;color:var(--color-neutral-700);text-align:center">
+"O valor do camping é calculado por pessoa e por diária."
+</div>
+</div>
+</div>
+
 <h4 style="margin:var(--space-8) 0 var(--space-2)">Como chegar</h4>
 <div style="font-size:17px;font-weight:600">Camping Municipal</div>
 <div style="font-size:14px;color:var(--color-neutral-800);margin-top:2px">Rua Centenário, 332, Guaratuba, Paraná · 24 km</div>
@@ -13016,6 +13103,10 @@ class Component extends DCLogic {
       bondeRegional: '',
       bondeDivisao: '',
       bondeGrau: '',
+      campingPessoas: 1,
+      campingCheckinDay: 'sex',
+      campingCheckinTime: '15:00',
+      campingCheckoutDay: 'sab',
       now: Date.now()
     };
   }
@@ -13024,6 +13115,32 @@ class Component extends DCLogic {
   componentWillUnmount() { clearInterval(this.timer); }
   go(tab) { this.setState({ tab, sheet: null }); if (this.scrollRef.current) this.scrollRef.current.scrollTop = 0; window.scrollTo(0, 0); }
   toggleFav(id) { this.setState(s => ({ fav: { ...s.fav, [id]: !s.fav[id] } })); }
+
+  onCampingPessoasInput(e) {
+    const val = parseInt(e && e.target ? e.target.value : '1', 10) || 1;
+    this.setState({ campingPessoas: Math.max(1, Math.min(100, val)) });
+  }
+  onCampingTimeInput(e) {
+    const val = (e && e.target ? e.target.value : '15:00') || '15:00';
+    this.setState({ campingCheckinTime: val });
+  }
+  onCampingCheckinDayChange(e) {
+    const val = (e && e.target ? e.target.value : 'sex').trim();
+    const dayOrder = { sex: 0, sab: 1, dom: 2, seg: 3 };
+    const cin = dayOrder[val] ?? 0;
+    let cout = dayOrder[this.state.campingCheckoutDay] ?? 1;
+    let nextCheckout = this.state.campingCheckoutDay;
+    if (cout <= cin) {
+      if (cin === 0) nextCheckout = 'sab';
+      else if (cin === 1) nextCheckout = 'dom';
+      else if (cin === 2) nextCheckout = 'seg';
+    }
+    this.setState({ campingCheckinDay: val, campingCheckoutDay: nextCheckout });
+  }
+  onCampingCheckoutDayChange(e) {
+    const val = (e && e.target ? e.target.value : 'sab').trim();
+    this.setState({ campingCheckoutDay: val });
+  }
 
   onRegionalChange(e) {
     const val = (e && e.target ? e.target.value : '').trim();
@@ -13120,6 +13237,32 @@ class Component extends DCLogic {
     let diff = Math.max(0, target - s.now);
     const cd = { d: String(Math.floor(diff / 864e5)), h: String(Math.floor(diff / 36e5) % 24).padStart(2, '0'), m: String(Math.floor(diff / 6e4) % 60).padStart(2, '0') };
     const TABS = [['inicio','Início','ph-house'],['bandas','Bandas','ph-microphone-stage'],['bonde','Bonde','ph-motorcycle'],['camping','Camping','ph-tent'],['festa','Festa','ph-confetti']];
+
+    const dayOrder = { sex: 0, sab: 1, dom: 2, seg: 3 };
+    const cinIdx = dayOrder[s.campingCheckinDay] ?? 0;
+    let coutIdx = dayOrder[s.campingCheckoutDay] ?? 1;
+    if (coutIdx <= cinIdx) {
+      coutIdx = Math.min(3, cinIdx + 1);
+    }
+    const campingDiarias = Math.max(1, coutIdx - cinIdx);
+    const campingPessoas = Math.max(1, parseInt(s.campingPessoas, 10) || 1);
+    const campingValorPorPessoa = 35;
+    const campingTotal = campingDiarias * campingPessoas * campingValorPorPessoa;
+    const campingTotalFormatted = 'R$ ' + campingTotal.toFixed(2).replace('.', ',');
+
+    const campingCheckinDaysList = [
+      { id: 'sex', label: 'Sexta-feira (09/10)' },
+      { id: 'sab', label: 'Sábado (10/10)' },
+      { id: 'dom', label: 'Domingo (11/10)' }
+    ];
+
+    const allCheckoutDays = [
+      { id: 'sab', label: 'Sábado (10/10) às 18:00' },
+      { id: 'dom', label: 'Domingo (11/10) às 18:00' },
+      { id: 'seg', label: 'Segunda-feira (12/10) às 18:00' }
+    ];
+    const campingCheckoutDaysList = allCheckoutDays.filter(d => dayOrder[d.id] > cinIdx);
+
     return {
       scrollRef: this.scrollRef,
       isInicio: s.tab === 'inicio', isBandas: s.tab === 'bandas', isBonde: s.tab === 'bonde', isCamping: s.tab === 'camping', isFesta: s.tab === 'festa',
@@ -13162,6 +13305,18 @@ class Component extends DCLogic {
       toggleBonde: () => this.openBondeModal(),
       bondeIcon: s.bonde ? 'ph-duotone ph-check-circle' : 'ph-duotone ph-hand-fist',
       bondeLabel: s.bonde ? 'Presença confirmada no bonde' : 'Vou no bonde',
+      campingPessoas: s.campingPessoas || 1,
+      campingCheckinTime: s.campingCheckinTime || '15:00',
+      campingCheckinDay: s.campingCheckinDay || 'sex',
+      campingCheckoutDay: s.campingCheckoutDay || 'sab',
+      campingDiarias,
+      campingTotalFormatted,
+      campingCheckinDaysList,
+      campingCheckoutDaysList,
+      onCampingPessoasInput: (e) => this.onCampingPessoasInput(e),
+      onCampingTimeInput: (e) => this.onCampingTimeInput(e),
+      onCampingCheckinDayChange: (e) => this.onCampingCheckinDayChange(e),
+      onCampingCheckoutDayChange: (e) => this.onCampingCheckoutDayChange(e),
       amenities: [['ph-shower','Local com banheiros amplos'],['ph-drop','Chuveiro quente'],['ph-shield-check','Portaria 24hrs'],['ph-plug','Tomada para as barracas'],['ph-fork-knife','Refeitórios']].map(([i, label]) => ({ icon: `ph-duotone ${i}`, label })),
       attractions: [['ph-balloon','Playground para as crianças'],['ph-truck','Praça de alimentação com foodtrucks'],['ph-storefront','Loja 18 Store'],['ph-wrench','Loja de acessórios: anéis, facas, etc.'],['ph-t-shirt','Loja de roupas temáticas'],['ph-beer-stein','Bebidas, refrigerantes'],['ph-beer-bottle','Chopp, bebidas quentes'],['ph-pen-nib','Flash tattoo']].map(([i, label]) => ({ icon: `ph-duotone ${i}`, label })),
       playground: ['Escorregador gigante','Campo de futebol','Escorregador médio','Chute ao gol','Tobogã duplo','Parede de escalada'].map((label, i) => ({ label, img: ((window.__resources||{})['play-'+(i+1)]) || `assets/play-${i + 1}.png` }))
@@ -13170,5 +13325,79 @@ class Component extends DCLogic {
 }
 </script>
 
+<script>
+(function() {
+  const dayOrder = { sex: 0, sab: 1, dom: 2, seg: 3 };
+
+  function updateCampingSimulation() {
+    const pInput = document.getElementById('camping-pessoas');
+    const inDaySelect = document.getElementById('camping-checkin-day');
+    const outDaySelect = document.getElementById('camping-checkout-day');
+    const dispDiarias = document.getElementById('disp-sim-diarias');
+    const dispPessoas = document.getElementById('disp-sim-pessoas');
+    const dispTotal = document.getElementById('disp-sim-total');
+
+    if (!pInput || !inDaySelect || !outDaySelect) return;
+
+    const inVal = inDaySelect.value || 'sex';
+    const cin = dayOrder[inVal] ?? 0;
+
+    const allOptions = [
+      { val: 'sab', label: 'Sábado (10/10) às 18:00', minCheckin: 0 },
+      { val: 'dom', label: 'Domingo (11/10) às 18:00', minCheckin: 1 },
+      { val: 'seg', label: 'Segunda-feira (12/10) às 18:00', minCheckin: 2 }
+    ];
+
+    const currentOutVal = outDaySelect.value;
+    outDaySelect.innerHTML = '';
+    let selectedStillValid = false;
+
+    allOptions.forEach(opt => {
+      if (opt.minCheckin >= cin) {
+        const optionEl = document.createElement('option');
+        optionEl.value = opt.val;
+        optionEl.textContent = opt.label;
+        if (opt.val === currentOutVal) {
+          optionEl.selected = true;
+          selectedStillValid = true;
+        }
+        outDaySelect.appendChild(optionEl);
+      }
+    });
+
+    if (!selectedStillValid && outDaySelect.options.length > 0) {
+      outDaySelect.options[0].selected = true;
+    }
+
+    const outVal = outDaySelect.value || 'sab';
+    const cout = dayOrder[outVal] ?? 1;
+
+    const diarias = Math.max(1, cout - cin);
+    const pessoas = Math.max(1, parseInt(pInput.value, 10) || 1);
+    const total = diarias * pessoas * 35;
+    const totalFormatted = 'R$ ' + total.toFixed(2).replace('.', ',');
+
+    if (dispDiarias) dispDiarias.textContent = diarias;
+    if (dispPessoas) dispPessoas.textContent = pessoas;
+    if (dispTotal) dispTotal.textContent = totalFormatted;
+  }
+
+  document.addEventListener('input', (e) => {
+    if (e.target && e.target.closest('#simulador-camping')) {
+      updateCampingSimulation();
+    }
+  });
+
+  document.addEventListener('change', (e) => {
+    if (e.target && e.target.closest('#simulador-camping')) {
+      updateCampingSimulation();
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    setTimeout(updateCampingSimulation, 100);
+  });
+})();
+</script>
 
 </body></html>
