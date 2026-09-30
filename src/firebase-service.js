@@ -87,12 +87,26 @@ export function makeDocId(nome, nomeColete, regional, divisao) {
   return `p_${prefix}_${hexHash}`.slice(0, 110);
 }
 
+export const GRAUS_SEM_DIVISAO = ['Regional V', 'Grau IV', 'Brasil III'];
+
+export function isDivisaoObrigatoria(grau) {
+  if (!grau) return true;
+  return !GRAUS_SEM_DIVISAO.includes(grau.trim());
+}
+
 export async function confirmarPresenca({ nome, nomeColete, regional, divisao, grau }) {
-  if (!nome || !nomeColete || !regional || !divisao || !grau) {
-    return { success: false, error: 'Todos os campos são obrigatórios.' };
+  const grauTrim = (grau || '').trim();
+  const precisaDivisao = isDivisaoObrigatoria(grauTrim);
+  const divisaoFinal = (divisao || '').trim();
+
+  if (!nome || !nomeColete || !regional || !grauTrim || (precisaDivisao && !divisaoFinal)) {
+    if (precisaDivisao && !divisaoFinal) {
+      return { success: false, error: 'O campo Divisão é obrigatório para este grau.' };
+    }
+    return { success: false, error: 'Todos os campos obrigatórios devem ser preenchidos.' };
   }
 
-  const docId = makeDocId(nome, nomeColete, regional, divisao);
+  const docId = makeDocId(nome, nomeColete, regional, divisaoFinal);
   const docRef = doc(db, 'bonde_1000', docId);
 
   try {
@@ -119,14 +133,14 @@ export async function confirmarPresenca({ nome, nomeColete, regional, divisao, g
     nome: nome.trim(),
     nomeColete: nomeColete.trim(),
     regional: regional.trim(),
-    divisao: divisao.trim(),
-    grau: grau.trim(),
+    divisao: divisaoFinal,
+    grau: grauTrim,
     evento: '1º Bonde das 1000 Motos',
     dataEvento: '10/10/2026',
     horarioSaida: '10:00',
-    localConcentracao: 'PE Professor Aníbal Cury',
+    localConcentracao: 'PE Avenida Deputado Aníbal Khury',
     dataHoraConfirmacao,
-    lookupKey: `${normalizeStr(nome)}_${normalizeStr(nomeColete)}_${normalizeStr(regional)}_${normalizeStr(divisao)}`
+    lookupKey: `${normalizeStr(nome)}_${normalizeStr(nomeColete)}_${normalizeStr(regional)}_${normalizeStr(divisaoFinal)}`
   };
 
   try {

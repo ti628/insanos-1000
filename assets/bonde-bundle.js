@@ -20346,6 +20346,7 @@ var BondeService = (() => {
   var firebase_service_exports = {};
   __export(firebase_service_exports, {
     GRAUS: () => GRAUS,
+    GRAUS_SEM_DIVISAO: () => GRAUS_SEM_DIVISAO,
     OperationType: () => OperationType2,
     REGIONAIS: () => REGIONAIS,
     REGIONAIS_DIVISOES: () => REGIONAIS_DIVISOES,
@@ -20356,6 +20357,7 @@ var BondeService = (() => {
     exportarExcel: () => exportarExcel,
     exportarPDF: () => exportarPDF,
     handleFirestoreError: () => handleFirestoreError,
+    isDivisaoObrigatoria: () => isDivisaoObrigatoria,
     listarParticipantes: () => listarParticipantes,
     loginAdmin: () => loginAdmin,
     logoutAdmin: () => logoutAdmin,
@@ -87676,11 +87678,22 @@ This typically indicates that your device does not have a healthy Internet conne
     const prefix = rawKey.slice(0, 70).replace(/^_|_$/g, "");
     return `p_${prefix}_${hexHash}`.slice(0, 110);
   }
+  var GRAUS_SEM_DIVISAO = ["Regional V", "Grau IV", "Brasil III"];
+  function isDivisaoObrigatoria(grau) {
+    if (!grau) return true;
+    return !GRAUS_SEM_DIVISAO.includes(grau.trim());
+  }
   async function confirmarPresenca({ nome, nomeColete, regional, divisao, grau }) {
-    if (!nome || !nomeColete || !regional || !divisao || !grau) {
-      return { success: false, error: "Todos os campos s\xE3o obrigat\xF3rios." };
+    const grauTrim = (grau || "").trim();
+    const precisaDivisao = isDivisaoObrigatoria(grauTrim);
+    const divisaoFinal = (divisao || "").trim();
+    if (!nome || !nomeColete || !regional || !grauTrim || precisaDivisao && !divisaoFinal) {
+      if (precisaDivisao && !divisaoFinal) {
+        return { success: false, error: "O campo Divis\xE3o \xE9 obrigat\xF3rio para este grau." };
+      }
+      return { success: false, error: "Todos os campos obrigat\xF3rios devem ser preenchidos." };
     }
-    const docId = makeDocId(nome, nomeColete, regional, divisao);
+    const docId = makeDocId(nome, nomeColete, regional, divisaoFinal);
     const docRef = doc(db, "bonde_1000", docId);
     try {
       const existingSnap = await getDoc(docRef);
@@ -87704,14 +87717,14 @@ This typically indicates that your device does not have a healthy Internet conne
       nome: nome.trim(),
       nomeColete: nomeColete.trim(),
       regional: regional.trim(),
-      divisao: divisao.trim(),
-      grau: grau.trim(),
+      divisao: divisaoFinal,
+      grau: grauTrim,
       evento: "1\xBA Bonde das 1000 Motos",
       dataEvento: "10/10/2026",
       horarioSaida: "10:00",
-      localConcentracao: "PE Professor An\xEDbal Cury",
+      localConcentracao: "PE Avenida Deputado An\xEDbal Khury",
       dataHoraConfirmacao,
-      lookupKey: `${normalizeStr(nome)}_${normalizeStr(nomeColete)}_${normalizeStr(regional)}_${normalizeStr(divisao)}`
+      lookupKey: `${normalizeStr(nome)}_${normalizeStr(nomeColete)}_${normalizeStr(regional)}_${normalizeStr(divisaoFinal)}`
     };
     try {
       await setDoc(docRef, payload);

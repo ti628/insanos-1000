@@ -42,12 +42,12 @@ service cloud.firestore {
              data.nome is string && data.nome.size() >= 2 && data.nome.size() <= 100 &&
              data.nomeColete is string && data.nomeColete.size() >= 1 && data.nomeColete.size() <= 100 &&
              data.regional is string && data.regional.size() >= 2 && data.regional.size() <= 100 &&
-             data.divisao is string && data.divisao.size() >= 2 && data.divisao.size() <= 100 &&
+             data.divisao is string && data.divisao.size() >= 0 && data.divisao.size() <= 100 &&
              data.grau is string && data.grau.size() >= 2 && data.grau.size() <= 50 &&
              data.evento == '1º Bonde das 1000 Motos' &&
              data.dataEvento == '10/10/2026' &&
              data.horarioSaida == '10:00' &&
-             data.localConcentracao == 'PE Professor Aníbal Cury';
+             (data.localConcentracao == 'PE Avenida Deputado Aníbal Khury' || data.localConcentracao == 'PE Deputado Aníbal Khury');
     }
   }
 }

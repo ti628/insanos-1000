@@ -12733,7 +12733,7 @@ a:hover{color:var(--color-accent-800)}
 
 <div style="margin-top:var(--space-8)">
 <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-2-700)">Entrada</div>
-<div style="font-size:24px;font-weight:600;line-height:1.15;margin-top:6px">Pacote de fralda</div>
+<div style="font-size:24px;font-weight:600;line-height:1.15;margin-top:6px">Pacote de Fralda Geriátrica</div>
 <p style="margin:6px 0 0;font-size:15px;color:var(--color-neutral-800)">Com nosso comando <strong>Abeia CMD XVI</strong>.</p>
 </div>
 
@@ -12800,7 +12800,7 @@ a:hover{color:var(--color-accent-800)}
 <div><div style="font-size:12px;color:var(--color-neutral-700)">Saída às</div><div style="font-size:40px;font-weight:600;line-height:1.05">10:00</div></div>
 </div>
 <div style="margin-top:var(--space-6);display:flex;flex-direction:column;gap:var(--space-4)">
-<div style="display:grid;grid-template-columns:24px 1fr;gap:var(--space-2)"><i class="ph-duotone ph-map-pin" style="font-size:20px;color:var(--color-accent);margin-top:2px"></i><div><div style="font-size:17px;font-weight:600;line-height:1.25">Local do P.E. Professor Aníbal Cury</div><div style="font-size:14px;color:var(--color-neutral-700)">S/N Ipanema, Pontal do PR</div></div></div>
+<div style="display:grid;grid-template-columns:24px 1fr;gap:var(--space-2)"><i class="ph-duotone ph-map-pin" style="font-size:20px;color:var(--color-accent);margin-top:2px"></i><div><div style="font-size:17px;font-weight:600;line-height:1.25">Local do P.E. Deputado Aníbal Khury</div><div style="font-size:14px;color:var(--color-neutral-700)">S/N Ipanema, Pontal do PR</div></div></div>
 <div style="display:grid;grid-template-columns:24px 1fr;gap:var(--space-2)"><i class="ph-duotone ph-signpost" style="font-size:20px;color:var(--color-accent);margin-top:2px"></i><div><div style="font-size:17px;font-weight:600;line-height:1.25">Local conhecido como Valo Grande</div></div></div>
 <div style="display:grid;grid-template-columns:24px 1fr;gap:var(--space-2)"><i class="ph-duotone ph-flag-checkered" style="font-size:20px;color:var(--color-accent-2);margin-top:2px"></i><div><div style="font-size:12px;color:var(--color-accent-2-700)">Destino</div><div style="font-size:17px;font-weight:600;line-height:1.25">2º Insanos Moto Fest</div></div></div>
 </div>
@@ -13045,7 +13045,7 @@ VALOR POR DIÁRIA/PESSOA: <span style="font-weight:700;color:var(--color-neutral
 </div>
 
 <div class="bonde-field">
-<label class="bonde-label" for="bonde-divisao">Divisão *</label>
+<label class="bonde-label" for="bonde-divisao">{{ bondeDivisaoLabel }}</label>
 <select id="bonde-divisao" class="bonde-select" sc-camel-on-change="{{ onDivisaoChange }}">
 <option value="">{{ bondeDivisaoPlaceholder }}</option>
 <sc-for list="{{ bondeDivisoesList }}" as="d">
@@ -13154,7 +13154,16 @@ class Component extends DCLogic {
   }
   onGrauChange(e) {
     const val = (e && e.target ? e.target.value : '').trim();
-    this.setState({ bondeGrau: val, bondeError: null });
+    const isSemDiv = ['Regional V', 'Grau IV', 'Brasil III'].includes(val);
+    this.setState({
+      bondeGrau: val,
+      bondeDivisao: isSemDiv ? '' : this.state.bondeDivisao,
+      bondeError: null
+    });
+    if (isSemDiv) {
+      const divEl = document.getElementById('bonde-divisao');
+      if (divEl) divEl.value = '';
+    }
   }
   onNomeInput(e) {
     const val = e && e.target ? e.target.value : '';
@@ -13170,11 +13179,18 @@ class Component extends DCLogic {
     const nome = (s.bondeNome || document.getElementById('bonde-nome')?.value || '').trim();
     const nomeColete = (s.bondeColete || document.getElementById('bonde-colete')?.value || '').trim();
     const regional = (s.bondeRegional || document.getElementById('bonde-regional')?.value || '').trim();
-    const divisao = (s.bondeDivisao || document.getElementById('bonde-divisao')?.value || '').trim();
     const grau = (s.bondeGrau || document.getElementById('bonde-grau')?.value || '').trim();
+    const divisao = (s.bondeDivisao || document.getElementById('bonde-divisao')?.value || '').trim();
 
-    if (!nome || !nomeColete || !regional || !divisao || !grau) {
-      this.setState({ bondeError: 'Por favor, preencha todos os campos obrigatórios.' });
+    const isGrauSemDivisao = ['Regional V', 'Grau IV', 'Brasil III'].includes(grau);
+    const divisaoObrigatoria = !isGrauSemDivisao;
+
+    if (!nome || !nomeColete || !regional || !grau || (divisaoObrigatoria && !divisao)) {
+      if (divisaoObrigatoria && !divisao) {
+        this.setState({ bondeError: 'O campo Divisão é obrigatório para este grau.' });
+      } else {
+        this.setState({ bondeError: 'Por favor, preencha todos os campos obrigatórios.' });
+      }
       return;
     }
 
@@ -13183,7 +13199,13 @@ class Component extends DCLogic {
       if (!window.BondeService) {
         throw new Error('Serviço de cadastro temporariamente indisponível.');
       }
-      const res = await window.BondeService.confirmarPresenca({ nome, nomeColete, regional, divisao, grau });
+      const res = await window.BondeService.confirmarPresenca({
+        nome,
+        nomeColete,
+        regional,
+        divisao: isGrauSemDivisao && !divisao ? '' : divisao,
+        grau
+      });
       if (!res.success) {
         this.setState({ bondeError: res.error, bondeSubmitting: false });
       } else {
@@ -13292,7 +13314,9 @@ class Component extends DCLogic {
       bondeRegionaisList: (window.BondeService && window.BondeService.REGIONAIS) ? window.BondeService.REGIONAIS : [],
       bondeGrausList: (window.BondeService && window.BondeService.GRAUS) ? window.BondeService.GRAUS : [],
       bondeDivisoesList: (window.BondeService && s.bondeRegional && window.BondeService.REGIONAIS_DIVISOES) ? (window.BondeService.REGIONAIS_DIVISOES[s.bondeRegional] || []) : [],
-      bondeDivisaoPlaceholder: s.bondeRegional ? 'Selecione a Divisão' : 'Selecione primeiro a Regional',
+      bondeDivisaoPlaceholder: ['Regional V', 'Grau IV', 'Brasil III'].includes(s.bondeGrau) ? 'Divisão não se aplica a este Grau' : (s.bondeRegional ? 'Selecione a Divisão' : 'Selecione primeiro a Regional'),
+      bondeDivisaoLabel: ['Regional V', 'Grau IV', 'Brasil III'].includes(s.bondeGrau) ? 'Divisão (opcional)' : 'Divisão *',
+      isGrauSemDivisao: ['Regional V', 'Grau IV', 'Brasil III'].includes(s.bondeGrau),
       openBondeModal: () => this.openBondeModal(),
       closeBondeModal: () => this.closeBondeModal(),
       resetBondeRegistration: () => this.resetBondeRegistration(),
