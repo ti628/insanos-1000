@@ -13571,7 +13571,7 @@ class Component extends DCLogic {
 
     const bondeRegionalDropdownEmpty = bondeRegionaisFiltered.length === 0;
 
-    const bondeRegionaisFilteredOptions = bondeRegionaisFiltered.slice(0, 100).map(name => ({
+    const bondeRegionaisFilteredOptions = bondeRegionaisFiltered.map(name => ({
       name,
       selected: s.bondeRegional === name,
       select: () => this.selectRegional(name)

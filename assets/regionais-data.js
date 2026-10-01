@@ -1,14 +1,15 @@
-export const GRAUS = [
-  'Camiseta / PP X',
-  'Meio escudo IX',
-  'Full XIII',
-  'Cargo XI',
-  'Regional V',
-  'Grau IV',
-  'Brasil III'
-];
+(function(global) {
+  var GRAUS = [
+    'Camiseta / PP X',
+    'Meio escudo IX',
+    'Full XIII',
+    'Cargo XI',
+    'Regional V',
+    'Grau IV',
+    'Brasil III'
+  ];
 
-export const REGIONAIS_DIVISOES = {
+  var REGIONAIS_DIVISOES = {
   "REGIONAL ACRE": [
     "Divisão Cruzeiro do Sul",
     "Divisão Rio Branco",
@@ -1989,4 +1990,14 @@ export const REGIONAIS_DIVISOES = {
   ]
 };
 
-export const REGIONAIS = Object.keys(REGIONAIS_DIVISOES);
+  var REGIONAIS = Object.keys(REGIONAIS_DIVISOES);
+
+  global.REGIONAIS_DIVISOES = REGIONAIS_DIVISOES;
+  global.REGIONAIS = REGIONAIS;
+  global.GRAUS = GRAUS;
+
+  if (!global.BondeService) global.BondeService = {};
+  global.BondeService.REGIONAIS_DIVISOES = REGIONAIS_DIVISOES;
+  global.BondeService.REGIONAIS = REGIONAIS;
+  global.BondeService.GRAUS = GRAUS;
+})(typeof window !== "undefined" ? window : globalThis);
