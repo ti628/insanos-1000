@@ -13594,7 +13594,7 @@ class Component extends DCLogic {
         ['03','Área de camping exclusiva','Do dia 09 ao dia 12 · preço justo','camping'],
         ['04','Programação e playground','Centro de Eventos Guaratuba','festa']
       ].map(([n, title, sub, id]) => ({ n, title, sub, go: () => this.go(id) })),
-      sponsors: ['Brux Beer','Estação 934 Pub','Daka Choperia e Petiscaria','Restaurante e Churrasco Caminho do Mar','Fuck the Diet Burger','Guaratuba Mil Grau','Mistura Fina Bar e Petiscaria','Chácara do Valdir','Gaivotas Summer Beach Bar','Contra Fogo','Ativa FM 87,5','Phone Repair'],
+      sponsors: ['Brux Beer','Estação 934 Pub','BiorTech','Daka Choperia e Petiscaria','Restaurante e Churrasco Caminho do Mar','Fuck the Diet Burger','Guaratuba Mil Grau','Mistura Fina Bar e Petiscaria','Chácara do Valdir','Gaivotas Summer Beach Bar','Contra Fogo','Ativa FM 87,5','Phone Repair'],
       days: ['sab','dom'].map(d => ({ label: dayName[d], pick: () => this.setState({ day: d }), bg: s.day === d ? 'var(--color-accent)' : 'transparent', fg: s.day === d ? 'var(--color-bg)' : 'var(--color-text)' })),
       bands: BANDS[s.day].map(r => mk(s.day, r)),
       sheetOpen: !!sheet, sheet: sheet || {}, closeSheet: () => this.setState({ sheet: null }), stop: (e) => e.stopPropagation(),
