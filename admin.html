@@ -683,6 +683,10 @@
           opt.textContent = reg;
           filterRegional.appendChild(opt);
         });
+        const optRegConv = document.createElement('option');
+        optRegConv.value = 'Convidado';
+        optRegConv.textContent = 'Convidados (Sem Regional)';
+        filterRegional.appendChild(optRegConv);
 
         const graus = BondeService.GRAUS || [];
         graus.forEach(g => {
@@ -691,6 +695,10 @@
           opt.textContent = g;
           filterGrau.appendChild(opt);
         });
+        const optGrauConv = document.createElement('option');
+        optGrauConv.value = 'Convidado';
+        optGrauConv.textContent = 'Convidado';
+        filterGrau.appendChild(optGrauConv);
       }
 
       // Dynamic divisions on regional filter change
@@ -707,6 +715,15 @@
         const reg = filterRegional.value;
         const currentDiv = filterDivisao.value;
         filterDivisao.innerHTML = '<option value="">Todas as Divisões</option>';
+
+        if (reg === 'Convidado') {
+          const opt = document.createElement('option');
+          opt.value = 'Convidado';
+          opt.textContent = 'Convidados (Sem Divisão)';
+          filterDivisao.appendChild(opt);
+          filterDivisao.value = 'Convidado';
+          return;
+        }
 
         if (reg && BondeService.REGIONAIS_DIVISOES[reg]) {
           BondeService.REGIONAIS_DIVISOES[reg].forEach(d => {
@@ -727,6 +744,10 @@
             opt.textContent = d;
             filterDivisao.appendChild(opt);
           });
+          const optDivConv = document.createElement('option');
+          optDivConv.value = 'Convidado';
+          optDivConv.textContent = 'Convidados (Sem Divisão)';
+          filterDivisao.appendChild(optDivConv);
         }
 
         if (Array.from(filterDivisao.options).some(o => o.value === currentDiv)) {
@@ -845,11 +866,38 @@
         const search = filterSearch.value.trim().toLowerCase();
 
         filteredParticipants = allParticipants.filter(p => {
-          const pTipo = p.tipoParticipante || 'Membro Insanos';
+          const isConv = (p.tipoParticipante === 'Convidado') || (window.BondeService && BondeService.isParticipantConvidado && BondeService.isParticipantConvidado(p, p.id));
+          const pTipo = isConv ? 'Convidado' : (p.tipoParticipante || 'Membro Insanos');
+
           if (selTipo && pTipo !== selTipo) return false;
-          if (selReg && (p.regional || '').toLowerCase() !== selReg) return false;
-          if (selDiv && (p.divisao || '').toLowerCase() !== selDiv) return false;
-          if (selGrau && (p.grau || '').toLowerCase() !== selGrau) return false;
+
+          if (selReg) {
+            if (selReg === 'convidado' || selReg === 'convidados') {
+              if (!isConv) return false;
+            } else {
+              if (isConv) return false;
+              if ((p.regional || '').toLowerCase() !== selReg) return false;
+            }
+          }
+
+          if (selDiv) {
+            if (selDiv === 'convidado' || selDiv === 'convidados') {
+              if (!isConv) return false;
+            } else {
+              if (isConv) return false;
+              if ((p.divisao || '').toLowerCase() !== selDiv) return false;
+            }
+          }
+
+          if (selGrau) {
+            if (selGrau === 'convidado' || selGrau === 'convidados') {
+              if (!isConv && (p.grau || '').toLowerCase() !== 'convidado') return false;
+            } else {
+              if (isConv) return false;
+              if ((p.grau || '').toLowerCase() !== selGrau) return false;
+            }
+          }
+
           if (search) {
             const nomeMatch = (p.nome || '').toLowerCase().includes(search);
             const coleteMatch = (p.nomeColete || '').toLowerCase().includes(search);
@@ -857,7 +905,9 @@
             const cargoMatch = (p.cargoFuncao || '').toLowerCase().includes(search);
             const cmdIntlMatch = (p.comandoInternacional || '').toLowerCase().includes(search);
             const cmdPastaMatch = (p.comandoPasta || '').toLowerCase().includes(search);
-            if (!nomeMatch && !coleteMatch && !motoclubeMatch && !cargoMatch && !cmdIntlMatch && !cmdPastaMatch) return false;
+            const tipoMatch = (pTipo || '').toLowerCase().includes(search);
+            const grauMatch = (p.grau || (isConv ? 'convidado' : '')).toLowerCase().includes(search);
+            if (!nomeMatch && !coleteMatch && !motoclubeMatch && !cargoMatch && !cmdIntlMatch && !cmdPastaMatch && !tipoMatch && !grauMatch) return false;
           }
           return true;
         });
@@ -883,8 +933,8 @@
         statFiltered.textContent = filteredParticipants.length;
         countDisplay.textContent = filteredParticipants.length;
 
-        const membrosCount = allParticipants.filter(p => (p.tipoParticipante || 'Membro Insanos') === 'Membro Insanos').length;
-        const convidadosCount = allParticipants.filter(p => p.tipoParticipante === 'Convidado').length;
+        const convidadosCount = allParticipants.filter(p => (p.tipoParticipante === 'Convidado') || (window.BondeService && BondeService.isParticipantConvidado && BondeService.isParticipantConvidado(p, p.id))).length;
+        const membrosCount = allParticipants.length - convidadosCount;
         if (statMembros) statMembros.textContent = membrosCount;
         if (statConvidados) statConvidados.textContent = convidadosCount;
 
@@ -902,11 +952,12 @@
         const counts = {};
 
         allParticipants.forEach(p => {
+          const isConv = (p.tipoParticipante === 'Convidado') || (window.BondeService && BondeService.isParticipantConvidado && BondeService.isParticipantConvidado(p, p.id));
           let key = '';
-          if (currentGroupTab === 'regional') key = p.regional || 'Não informada / Convidado';
-          else if (currentGroupTab === 'divisao') key = p.divisao || 'Não informada / Convidado';
-          else if (currentGroupTab === 'grau') key = p.grau || 'Não informado / Convidado';
-          else if (currentGroupTab === 'tipo') key = p.tipoParticipante || 'Membro Insanos';
+          if (currentGroupTab === 'regional') key = isConv ? 'Convidados (Sem Regional)' : (p.regional || 'Não informada');
+          else if (currentGroupTab === 'divisao') key = isConv ? 'Convidados (Sem Divisão)' : (p.divisao || 'Não informada');
+          else if (currentGroupTab === 'grau') key = isConv ? 'Convidado' : (p.grau || 'Não informado');
+          else if (currentGroupTab === 'tipo') key = isConv ? 'Convidado' : (p.tipoParticipante || 'Membro Insanos');
 
           counts[key] = (counts[key] || 0) + 1;
         });
@@ -951,22 +1002,24 @@
 
         filteredParticipants.forEach((p, idx) => {
           const tr = document.createElement('tr');
-          const isConv = p.tipoParticipante === 'Convidado';
+          const isConv = (p.tipoParticipante === 'Convidado') || (window.BondeService && BondeService.isParticipantConvidado && BondeService.isParticipantConvidado(p, p.id));
           const tipoBadge = isConv
             ? `<span class="badge-tipo-convidado">Convidado</span>`
             : `<span class="badge-tipo-membro">Membro</span>`;
           const coleteOuMc = isConv
             ? `<span style="color:var(--color-accent-2);font-weight:600">MC: ${escapeHtml(p.motoclube || 'Não informado')}</span>`
             : escapeHtml(p.nomeColete || '-');
-          const regionalVal = isConv ? '<span style="color:var(--color-neutral-400);">-</span>' : (p.regional ? escapeHtml(p.regional) : '<span style="color:var(--color-neutral-400);">Não aplicável</span>');
-          const divisaoVal = isConv ? '<span style="color:var(--color-neutral-400);">-</span>' : (p.divisao ? escapeHtml(p.divisao) : '<span style="color:var(--color-neutral-400);">Não aplicável</span>');
+          const regionalVal = isConv ? '<span style="color:var(--color-neutral-400);">Convidado</span>' : (p.regional ? escapeHtml(p.regional) : '<span style="color:var(--color-neutral-400);">Não aplicável</span>');
+          const divisaoVal = isConv ? '<span style="color:var(--color-neutral-400);">Convidado</span>' : (p.divisao ? escapeHtml(p.divisao) : '<span style="color:var(--color-neutral-400);">Não aplicável</span>');
           
           let cargoDetail = '';
           if (p.cargoFuncao) cargoDetail = `<div style="font-size:11px;font-weight:600;color:var(--color-neutral-700);margin-top:3px;">${escapeHtml(p.cargoFuncao)}</div>`;
           else if (p.comandoInternacional) cargoDetail = `<div style="font-size:11px;font-weight:600;color:var(--color-neutral-700);margin-top:3px;">${escapeHtml(p.comandoInternacional)}</div>`;
           else if (p.comandoPasta) cargoDetail = `<div style="font-size:11px;font-weight:600;color:var(--color-neutral-700);margin-top:3px;">${escapeHtml(p.comandoPasta)}</div>`;
 
-          const grauVal = isConv ? '<span style="color:var(--color-neutral-400);">-</span>' : `<span class="badge-grau">${escapeHtml(p.grau || '-')}</span>${cargoDetail}`;
+          const grauVal = isConv 
+            ? `<span class="badge-tipo-convidado" style="font-size:11px;">Convidado</span>` 
+            : `<span class="badge-grau">${escapeHtml(p.grau || '-')}</span>${cargoDetail}`;
 
           tr.innerHTML = `
             <td style="text-align: center; font-weight: 700; color: var(--color-neutral-600);">${idx + 1}</td>

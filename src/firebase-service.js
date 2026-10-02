@@ -77,11 +77,44 @@ export function normalizeStr(str) {
     .replace(/_+/g, '_');
 }
 
+export function isParticipantConvidado(data, docId = '') {
+  if (!data) return false;
+
+  const tipo = String(data.tipoParticipante || data.tipo || '').trim().toLowerCase();
+  if (tipo === 'convidado' || tipo === 'convidados' || tipo.includes('convid')) return true;
+
+  const grau = String(data.grau || '').trim().toLowerCase();
+  if (grau === 'convidado' || grau === 'convidados' || grau.includes('convid')) return true;
+
+  const regional = String(data.regional || '').trim().toLowerCase();
+  if (regional === 'convidado' || regional === 'convidados' || regional.includes('convid')) return true;
+
+  const divisao = String(data.divisao || '').trim().toLowerCase();
+  if (divisao === 'convidado' || divisao === 'convidados' || divisao.includes('convid')) return true;
+
+  const colete = String(data.nomeColete || '').trim().toLowerCase();
+  if (colete === 'convidado' || colete === 'convidados' || colete.includes('convid')) return true;
+
+  const mc = String(data.motoclube || '').trim().toLowerCase();
+  if (mc !== '' && mc !== 'insanos mc' && mc !== 'insanos' && mc !== 'insanos m.c.' && mc !== 'insanos motoclube') return true;
+
+  const id = String(docId || data.id || '').toLowerCase();
+  if (id.startsWith('p_conv_') || id.startsWith('conv_') || id.includes('convid') || id.includes('_conv_')) return true;
+
+  const key = String(data.lookupKey || '').toLowerCase();
+  if (key.startsWith('conv_') || key.includes('convid') || key.includes('_conv_')) return true;
+
+  if (!data.nomeColete && !data.regional && (!data.grau || data.grau === 'Convidado') && data.motoclube) return true;
+  return false;
+}
+
+export { isParticipantConvidado as isConvidado };
+
 export function makeDocId(param1, nomeColete, regional, divisao) {
   let rawKey = '';
   if (typeof param1 === 'object' && param1 !== null) {
     const { tipoParticipante, nome, nomeColete: nc, regional: reg, divisao: div, motoclube } = param1;
-    if (tipoParticipante === 'Convidado') {
+    if (isParticipantConvidado(param1)) {
       rawKey = `conv_${normalizeStr(nome)}_${normalizeStr(motoclube)}`;
     } else {
       rawKey = `${normalizeStr(nome)}_${normalizeStr(nc)}_${normalizeStr(reg)}_${normalizeStr(div)}`;
@@ -140,7 +173,7 @@ export async function confirmarPresenca({
   comandoPasta = '',
   motoclube = ''
 }) {
-  const isConvidado = tipoParticipante === 'Convidado';
+  const isConvidado = isParticipantConvidado({ tipoParticipante, motoclube, nomeColete, regional, grau });
   const nomeTrim = (nome || '').trim();
 
   let docId = '';
@@ -171,7 +204,7 @@ export async function confirmarPresenca({
       motoclube: motoclubeTrim,
       regional: '',
       divisao: '',
-      grau: '',
+      grau: 'Convidado',
       cargoFuncao: '',
       comandoInternacional: '',
       comandoPasta: '',
@@ -263,7 +296,7 @@ export async function confirmarPresenca({
       nomeColete: isConvidado ? '' : payload.nomeColete,
       regional: payload.regional,
       divisao: payload.divisao,
-      grau: payload.grau,
+      grau: isConvidado ? 'Convidado' : payload.grau,
       cargoFuncao: payload.cargoFuncao,
       comandoInternacional: payload.comandoInternacional,
       comandoPasta: payload.comandoPasta
@@ -281,20 +314,20 @@ export async function listarParticipantes() {
     const list = [];
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
-      const isConv = data.tipoParticipante === 'Convidado';
+      const isConv = isParticipantConvidado(data, docSnap.id);
       list.push({
         id: docSnap.id,
         ...data,
-        tipoParticipante: isConv ? 'Convidado' : 'Membro Insanos',
-        motoclube: isConv ? (data.motoclube || data.nomeColete || '') : '',
+        tipoParticipante: isConv ? 'Convidado' : (data.tipoParticipante || 'Membro Insanos'),
+        motoclube: isConv ? (data.motoclube || data.nomeColete || 'Sem Clube') : (data.motoclube || 'Insanos MC'),
         nome: data.nome || '',
         nomeColete: isConv ? '' : (data.nomeColete || ''),
-        regional: data.regional || '',
-        divisao: data.divisao || '',
-        grau: isConv ? '' : (data.grau || ''),
-        cargoFuncao: data.cargoFuncao || '',
-        comandoInternacional: data.comandoInternacional || '',
-        comandoPasta: data.comandoPasta || '',
+        regional: isConv ? '' : (data.regional || ''),
+        divisao: isConv ? '' : (data.divisao || ''),
+        grau: isConv ? 'Convidado' : (data.grau || ''),
+        cargoFuncao: isConv ? '' : (data.cargoFuncao || ''),
+        comandoInternacional: isConv ? '' : (data.comandoInternacional || ''),
+        comandoPasta: isConv ? '' : (data.comandoPasta || ''),
         dataHoraConfirmacao: data.dataHoraConfirmacao || ''
       });
     });
@@ -317,17 +350,17 @@ export async function excluirParticipante(id) {
 
 export function exportarExcel(participantes, nomeArquivo = 'bonde_1000_participantes.xlsx') {
   const dados = participantes.map((p, idx) => {
-    const isConv = p.tipoParticipante === 'Convidado';
+    const isConv = isParticipantConvidado(p, p.id);
     const cargoExtra = p.cargoFuncao || p.comandoInternacional || p.comandoPasta || '';
-    const grauFormatado = isConv ? '-' : (p.grau ? (cargoExtra ? `${p.grau} (${cargoExtra})` : p.grau) : '-');
+    const grauFormatado = isConv ? 'Convidado' : (p.grau ? (cargoExtra ? `${p.grau} (${cargoExtra})` : p.grau) : '-');
     return {
       'Nº': idx + 1,
-      'Tipo': p.tipoParticipante || 'Membro Insanos',
+      'Tipo': isConv ? 'Convidado' : 'Membro Insanos',
       'Nome': p.nome || '',
       'Nome de Colete': isConv ? '-' : (p.nomeColete || '-'),
-      'Motoclube': isConv ? (p.motoclube || '-') : 'Insanos MC',
-      'Regional': isConv ? '-' : (p.regional || '-'),
-      'Divisão': isConv ? '-' : (p.divisao || '-'),
+      'Motoclube': isConv ? (p.motoclube || 'Sem Clube') : 'Insanos MC',
+      'Regional': isConv ? 'Convidado' : (p.regional || '-'),
+      'Divisão': isConv ? 'Convidado' : (p.divisao || '-'),
       'Grau': grauFormatado,
       'Data/Hora da confirmação': p.dataHoraConfirmacao || ''
     };
@@ -371,17 +404,17 @@ export function exportarPDF(participantes, nomeArquivo = 'bonde_1000_participant
   docDate(pdfDoc);
 
   const tableData = participantes.map((p, idx) => {
-    const isConv = p.tipoParticipante === 'Convidado';
-    const coleteOuMc = isConv ? (p.motoclube ? `MC: ${p.motoclube}` : '-') : (p.nomeColete || '-');
+    const isConv = isParticipantConvidado(p, p.id);
+    const coleteOuMc = isConv ? (p.motoclube ? `MC: ${p.motoclube}` : 'Sem Clube') : (p.nomeColete || '-');
     const cargoExtra = p.cargoFuncao || p.comandoInternacional || p.comandoPasta || '';
-    const grauFormatado = isConv ? '-' : (p.grau ? (cargoExtra ? `${p.grau}\n(${cargoExtra})` : p.grau) : '-');
+    const grauFormatado = isConv ? 'Convidado' : (p.grau ? (cargoExtra ? `${p.grau}\n(${cargoExtra})` : p.grau) : '-');
     return [
       idx + 1,
-      p.tipoParticipante || 'Membro Insanos',
+      isConv ? 'Convidado' : 'Membro Insanos',
       p.nome || '',
       coleteOuMc,
-      isConv ? '-' : (p.regional || '-'),
-      isConv ? '-' : (p.divisao || '-'),
+      isConv ? 'Convidado' : (p.regional || '-'),
+      isConv ? 'Convidado' : (p.divisao || '-'),
       grauFormatado,
       p.dataHoraConfirmacao || ''
     ];

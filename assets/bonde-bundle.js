@@ -20345,8 +20345,10 @@ var BondeService = (() => {
   // src/firebase-service.js
   var firebase_service_exports = {};
   __export(firebase_service_exports, {
+    CARGOS_GRAU_I: () => CARGOS_GRAU_I,
+    COMANDOS_GRAU_II: () => COMANDOS_GRAU_II,
+    COMANDOS_GRAU_III: () => COMANDOS_GRAU_III,
     GRAUS: () => GRAUS,
-    GRAUS_SEM_DIVISAO: () => GRAUS_SEM_DIVISAO,
     OperationType: () => OperationType2,
     REGIONAIS: () => REGIONAIS,
     REGIONAIS_DIVISOES: () => REGIONAIS_DIVISOES,
@@ -20356,8 +20358,14 @@ var BondeService = (() => {
     excluirParticipante: () => excluirParticipante,
     exportarExcel: () => exportarExcel,
     exportarPDF: () => exportarPDF,
+    getGrauCategory: () => getGrauCategory,
     handleFirestoreError: () => handleFirestoreError,
+    isConvidado: () => isParticipantConvidado,
+    isDivisaoAplicavel: () => isDivisaoAplicavel,
     isDivisaoObrigatoria: () => isDivisaoObrigatoria,
+    isParticipantConvidado: () => isParticipantConvidado,
+    isRegionalAplicavel: () => isRegionalAplicavel,
+    isRegionalObrigatoria: () => isRegionalObrigatoria,
     listarParticipantes: () => listarParticipantes,
     loginAdmin: () => loginAdmin,
     logoutAdmin: () => logoutAdmin,
@@ -87374,15 +87382,579 @@ This typically indicates that your device does not have a healthy Internet conne
 
   // src/bonde-data.js
   var GRAUS = [
-    "Camiseta / PP X",
-    "Meio escudo IX",
-    "Full VIII",
-    "Cargo XI",
-    "Regional V",
+    "Grau I",
+    "Grau II",
+    "Brasil III",
     "Grau IV",
-    "Brasil III"
+    "Regional V",
+    "Cargo XI",
+    "Full XIII",
+    "Meio escudo IX",
+    "Camiseta / PP X"
+  ];
+  var CARGOS_GRAU_I = [
+    "Presidente",
+    "Vice-Presidente",
+    "Diretor de Disciplina Mundial",
+    "Diretor Social Mundial",
+    "Diretor de Comunica\xE7\xE3o Mundial",
+    "Diretor Sargento de Armas Mundial",
+    "Diretor Financeiro Mundial",
+    "Diretor Operacional Mundial",
+    "Diretor de Expans\xE3o Mundial",
+    "Jur\xEDdico",
+    "Intelig\xEAncia Mundial"
+  ];
+  var COMANDOS_GRAU_II = [
+    "Comando Am\xE9rica do Sul",
+    "Comando Europa",
+    "Comando Am\xE9rica do Norte",
+    "Comando Am\xE9rica Central",
+    "Comando \xC1sia",
+    "Comando Oceania",
+    "Comando \xC1frica"
+  ];
+  var COMANDOS_GRAU_III = [
+    "Comando Nacional",
+    "Pasta Social",
+    "Pasta Disciplina",
+    "Pasta Expans\xE3o",
+    "Pasta Comunica\xE7\xE3o",
+    "Pasta Sargento de Armas",
+    "Pasta Financeiro",
+    "Pasta Operacional",
+    "Pasta Intelig\xEAncia",
+    "Pasta Jur\xEDdico"
   ];
   var REGIONAIS_DIVISOES = {
+    "REGIONAL ACRE": [
+      "Divis\xE3o Cruzeiro do Sul",
+      "Divis\xE3o Rio Branco",
+      "Divis\xE3o Boca do Acre"
+    ],
+    "REGIONAL AMAP\xC1": [
+      "Divis\xE3o Macap\xE1 Centro",
+      "Divis\xE3o Santana",
+      "Divis\xE3o Macap\xE1 Norte",
+      "Divis\xE3o Macap\xE1 Sul"
+    ],
+    "REGIONAL MANAUS": [
+      "Divis\xE3o Itapiranga",
+      "Divis\xE3o Iranduba",
+      "Divis\xE3o Manaus Sul",
+      "Divis\xE3o Manaus Norte",
+      "Divis\xE3o Manaus Leste",
+      "Divis\xE3o Manaus Centro",
+      "Divis\xE3o Manaus Oeste",
+      "Divis\xE3o Itacoatiara",
+      "Divis\xE3o Presidente Figueiredo",
+      "Divis\xE3o Manaus Sudeste",
+      "Divis\xE3o Manacapuru AM"
+    ],
+    "REGIONAL BAHIA I": [
+      "Divis\xE3o Salvador",
+      "Divis\xE3o Feira de Santana",
+      "Divis\xE3o Paulo Afonso",
+      "Divis\xE3o Cama\xE7ari",
+      "Divis\xE3o Ribeira do Pombal",
+      "Divis\xE3o Jequi\xE9",
+      "Divis\xE3o Jacobina",
+      "Divis\xE3o Pilar",
+      "Divis\xE3o Salvador Norte",
+      "Divis\xE3o Serrinha",
+      "Divis\xE3o Lauro de Freitas",
+      "Divis\xE3o Salvador Leste",
+      "Divis\xE3o Itaberaba",
+      "Divis\xE3o Valen\xE7a",
+      "Divis\xE3o Salvador Litoral",
+      "Divis\xE3o Juazeiro"
+    ],
+    "REGIONAL BAHIA II": [
+      "Divis\xE3o Barreiras",
+      "Divis\xE3o Lu\xEDs Eduardo Magalh\xE3es",
+      "Divis\xE3o Barreiras Norte",
+      "Divis\xE3o Serra Dourada",
+      "Divis\xE3o Santa Maria da Vit\xF3ria",
+      "Divis\xE3o Barreiras Sul",
+      "Divis\xE3o Correntina",
+      "Divis\xE3o Bom Jesus da Lapa",
+      "Divis\xE3o Seabra",
+      "Divis\xE3o Irec\xEA",
+      "Divis\xE3o Posse"
+    ],
+    "REGIONAL BAHIA III": [
+      "Divis\xE3o Porto Seguro",
+      "Divis\xE3o Vit\xF3ria da Conquista",
+      "Divis\xE3o Santa Cruz de Cabralia",
+      "Divis\xE3o Guanambi",
+      "Divis\xE3o Ilh\xE9us",
+      "Divis\xE3o Eun\xE1polis",
+      "Divis\xE3o Caetit\xE9",
+      "Divis\xE3o Planalto",
+      "Divis\xE3o Arraial D' Ajuda",
+      "Divis\xE3o Maca\xFAbas",
+      "Divis\xE3o Brumado"
+    ],
+    "REGIONAL NORDESTE II": [
+      "Divis\xE3o Eusebio",
+      "Divis\xE3o Fortaleza Sul",
+      "Divis\xE3o Maracana\xFA",
+      "Divis\xE3o Vale do Jaguaribe",
+      "Divis\xE3o Pacajus",
+      "Divis\xE3o Fortaleza Centro",
+      "Divis\xE3o Fortaleza Oeste",
+      "Divis\xE3o Fortaleza Leste",
+      "Divis\xE3o Litoral Leste",
+      "Divis\xE3o Cariri",
+      "Divis\xE3o Aquiraz",
+      "Divis\xE3o Mauriti"
+    ],
+    "REGIONAL NORDESTE X": [
+      "Divis\xE3o Caucaia",
+      "Divis\xE3o Paracuru",
+      "Divis\xE3o Trairi",
+      "Divis\xE3o Itapipoca",
+      "Divis\xE3o S\xE3o Gon\xE7alo do Amarant"
+    ],
+    "REGIONAL BRAS\xCDLIA I": [
+      "Divis\xE3o Bras\xEDlia",
+      "Divis\xE3o Jardim Bot\xE2nico",
+      "Divis\xE3o S\xE3o Sebasti\xE3o",
+      "Divis\xE3o Riacho Fundo",
+      "Divis\xE3o Guar\xE1",
+      "Divis\xE3o Vicente Pires",
+      "Divis\xE3o Taguatinga"
+    ],
+    "REGIONAL BRAS\xCDLIA II": [
+      "Divis\xE3o Paracatu",
+      "Divis\xE3o Novo Gama",
+      "Divis\xE3o Jardim Ing\xE1",
+      "Divis\xE3o Jardim ABC",
+      "Divis\xE3o Cristalina",
+      "Divis\xE3o Valparaiso",
+      "Divis\xE3o Cidade Ocidental",
+      "Divis\xE3o Luzi\xE2nia"
+    ],
+    "REGIONAL BRAS\xCDLIA III": [
+      "Divis\xE3o \xC1guas Lindas",
+      "Divis\xE3o Santa Maria",
+      "Divis\xE3o Samambaia",
+      "Divis\xE3o Gama",
+      "Divis\xE3o Ceil\xE2ndia",
+      "Divis\xE3o Recanto das Emas"
+    ],
+    "REGIONAL BRAS\xCDLIA IV": [
+      "Divis\xE3o Planaltina",
+      "Divis\xE3o Sobradinho",
+      "Divis\xE3o Parano\xE1",
+      "Divis\xE3o Formosa",
+      "Divis\xE3o Una\xED"
+    ],
+    "REGIONAL ESPIRITO SANTO NORTE": [
+      "Divis\xE3o Colatina",
+      "Divis\xE3o Serra",
+      "Divis\xE3o Concei\xE7\xE3o da Barra",
+      "Divis\xE3o Porto Canoa",
+      "Divis\xE3o Ilha de Guriri",
+      "Divis\xE3o Jacara\xEDpe",
+      "Divis\xE3o Mestre Alvaro",
+      "Divis\xE3o Feu Rosa",
+      "Divis\xE3o Capuba",
+      "Divis\xE3o Pinheiros",
+      "Divis\xE3o Linhares",
+      "Divis\xE3o Novo Horizonte"
+    ],
+    "REGIONAL ESPIRITO SANTO SUL": [
+      "Divis\xE3o Gua\xE7ui",
+      "Divis\xE3o Guarapari",
+      "Divis\xE3o At\xEDlio Vivacqua",
+      "Divis\xE3o Anchieta",
+      "Divis\xE3o Itapemirim",
+      "Divis\xE3o Pi\xFAma",
+      "Divis\xE3o Cachoeiro de Itapemiri"
+    ],
+    "REGIONAL VIT\xD3RIA": [
+      "Divis\xE3o Vit\xF3ria",
+      "Divis\xE3o Cariacica",
+      "Divis\xE3o Vila Velha",
+      "Divis\xE3o Domingos Martins",
+      "Divis\xE3o Vila Velha Sul"
+    ],
+    "REGIONAL GOI\xC2NIA": [
+      "Divis\xE3o Goi\xE2nia Centro",
+      "Divis\xE3o Goi\xE2nia Norte",
+      "Divis\xE3o Aparecida de Goi\xE2nia",
+      "Divis\xE3o Goianira",
+      "Divis\xE3o Inhumas",
+      "Divis\xE3o Trindade",
+      "Divis\xE3o Naz\xE1rio",
+      "Divis\xE3o Goi\xE2nia Oeste",
+      "Divis\xE3o Itapirapu\xE3",
+      "Divis\xE3o Goi\xE2nia Noroeste",
+      "Divis\xE3o Goi\xE2nia Leste"
+    ],
+    "REGIONAL GOIAS I": [
+      "Divis\xE3o Pires do Rio",
+      "Divis\xE3o Piracanjuba",
+      "Divis\xE3o Orizona",
+      "Divis\xE3o Cristian\xF3polis",
+      "Divis\xE3o Pontalina"
+    ],
+    "REGIONAL GOI\xC1S II": [
+      "Divis\xE3o Itumbiara",
+      "Divis\xE3o Quirinopolis",
+      "Divis\xE3o Rio Verde",
+      "Divis\xE3o Ca\xE7u",
+      "Divis\xE3o Santa Helena"
+    ],
+    "REGIONAL GOIAS III": [
+      "Divis\xE3o Caldas Novas",
+      "Divis\xE3o Ipameri",
+      "Divis\xE3o Morrinhos",
+      "Divis\xE3o Urutai",
+      "Divis\xE3o Goiatuba",
+      "Divis\xE3o Rio Quente"
+    ],
+    "REGIONAL GOI\xC1S IV": [
+      "Divis\xE3o Goian\xE9sia",
+      "Divis\xE3o Rialma",
+      "Divis\xE3o Urua\xE7u",
+      "Divis\xE3o Ceres",
+      "Divis\xE3o Porangatu",
+      "Divis\xE3o Carmo do Rio Verde",
+      "Divis\xE3o Jaragu\xE1",
+      "Divis\xE3o Niquel\xE2ndia",
+      "Divis\xE3o Mara Rosa",
+      "Divis\xE3o Nova Crixas"
+    ],
+    "REGIONAL GOI\xC1S V": [
+      "Divis\xE3o An\xE1polis Oeste",
+      "Divis\xE3o Bela Vista",
+      "Divis\xE3o Senador Canedo",
+      "Divis\xE3o Bonfin\xF3polis",
+      "Divis\xE3o An\xE1polis Leste"
+    ],
+    "REGIONAL SUDESTE GOIANO": [
+      "Divis\xE3o Catal\xE3o Centro",
+      "Divis\xE3o Campo Alegre de Goi\xE1s",
+      "Divis\xE3o Anhanguera",
+      "Divis\xE3o Tr\xEAs Ranchos",
+      "Divis\xE3o Goiandira",
+      "Divis\xE3o Catal\xE3o Oeste",
+      "Divis\xE3o Ouvidor",
+      "Divis\xE3o Corumba\xEDba",
+      "Divis\xE3o Catal\xE3o Norte",
+      "Divis\xE3o Catal\xE3o Sul"
+    ],
+    "REGIONAL NORDESTE I": [
+      "Divis\xE3o Tiangu\xE1",
+      "Divis\xE3o Ibiapina",
+      "Divis\xE3o Monsenhor Tabosa",
+      "Divis\xE3o Sobral",
+      "Divis\xE3o Jijoca",
+      "Divis\xE3o Parna\xEDba",
+      "Divis\xE3o Teresina"
+    ],
+    "REGIONAL NORDESTE VI": [
+      "Divis\xE3o S\xE3o Luis",
+      "Divis\xE3o Barreirinhas",
+      "Divis\xE3o Pa\xE7o do Lumiar",
+      "Divis\xE3o S\xE3o Jos\xE9 de Ribamar",
+      "Divis\xE3o Santa In\xEAs",
+      "Divis\xE3o Raposa"
+    ],
+    "REGIONAL BRASNORTE": [
+      "Divis\xE3o Brasnorte",
+      "Divis\xE3o Campo Novo do Parecis",
+      "Divis\xE3o Ju\xEDna",
+      "Divis\xE3o Juara",
+      "Divis\xE3o Colniza"
+    ],
+    "REGIONAL CUIAB\xC1": [
+      "Divis\xE3o Cuiab\xE1",
+      "Divis\xE3o Tangar\xE1 da Serra",
+      "Divis\xE3o V\xE1rzea Grande",
+      "Divis\xE3o Barra do Gar\xE7as",
+      "Divis\xE3o Rondon\xF3polis"
+    ],
+    "REGIONAL SINOP": [
+      "Divis\xE3o Sinop",
+      "Divis\xE3o Alta Floresta",
+      "Divis\xE3o Lucas do Rio Verde",
+      "Divis\xE3o Sorriso",
+      "Divis\xE3o Nova Mutum",
+      "Divis\xE3o Colider",
+      "Divis\xE3o Sorriso Centro",
+      "Divis\xE3o Ipiranga do Norte",
+      "Divis\xE3o Apiac\xE1s",
+      "Divis\xE3o Sinop Centro",
+      "Divis\xE3o Guarant\xE3 do Norte",
+      "Divis\xE3o Terra Nova"
+    ],
+    "REGIONAL CAMPO GRANDE": [
+      "Divis\xE3o Campo Grande",
+      "Divis\xE3o Aquidauana",
+      "Divis\xE3o Campo Grande Norte",
+      "Divis\xE3o Campo Grande Centro",
+      "Divis\xE3o Campo Grande Sul",
+      "Divis\xE3o Campo Grande Leste",
+      "Divis\xE3o Campo Grande Oeste",
+      "Divis\xE3o Ribas do Rio Pardo",
+      "Divis\xE3o Sidrol\xE2ndia",
+      "Divis\xE3o Maracaju",
+      "Divis\xE3o S\xE3o Gabriel do Oeste"
+    ],
+    "REGIONAL DOURADOS": [
+      "Divis\xE3o Dourados",
+      "Divis\xE3o Nova Andradina",
+      "Divis\xE3o Itapor\xE3",
+      "Divis\xE3o Amambai",
+      "Divis\xE3o Ivinhema",
+      "Divis\xE3o Navira\xED",
+      "Divis\xE3o Dourados Sul",
+      "Divis\xE3o F\xE1tima do Sul",
+      "Divis\xE3o Douradina"
+    ],
+    "REGIONAL GUAICURUS": [
+      "Divis\xE3o Chapad\xE3o do Sul",
+      "Divis\xE3o Inoc\xEAncia",
+      "Divis\xE3o Cassil\xE2ndia",
+      "Divis\xE3o Parana\xEDba",
+      "Divis\xE3o Costa Rica",
+      "Divis\xE3o Chapad\xE3o do C\xE9u"
+    ],
+    "REGIONAL JARDIM": [
+      "Divis\xE3o Corumb\xE1",
+      "Divis\xE3o Ponta Por\xE3",
+      "Divis\xE3o Bonito",
+      "Divis\xE3o Jardim",
+      "Divis\xE3o Lad\xE1rio"
+    ],
+    "REGIONAL TR\xCAS LAGOAS": [
+      "Divis\xE3o Tr\xEAs Lagoas Sul",
+      "Divis\xE3o \xC1gua Clara",
+      "Divis\xE3o Selv\xEDria",
+      "Divis\xE3o Bataguassu",
+      "Divis\xE3o Tr\xEAs Lagoas Norte",
+      "Divis\xE3o Tr\xEAs Lagoas Oeste",
+      "Divis\xE3o Aparecida do Taboado",
+      "Divis\xE3o Tr\xEAs Lagoas Leste"
+    ],
+    "REGIONAL ARAX\xC1": [
+      "Divis\xE3o Arax\xE1 Sul",
+      "Divis\xE3o Patrocinio",
+      "Divis\xE3o Ibi\xE1",
+      "Divis\xE3o Rio Parana\xEDba",
+      "Divis\xE3o Pratinha",
+      "Divis\xE3o Arax\xE1 Norte",
+      "Divis\xE3o Sacramento"
+    ],
+    "REGIONAL BAMBU\xCD": [
+      "Divis\xE3o Bambui",
+      "Divis\xE3o Lagoa da Prata",
+      "Divis\xE3o Medeiros",
+      "Divis\xE3o Luz",
+      "Divis\xE3o Santa Rosa da Serra",
+      "Divis\xE3o Campos Altos",
+      "Divis\xE3o Moema"
+    ],
+    "REGIONAL BELO HORIZONTE": [
+      "Divis\xE3o Belo Horizonte",
+      "Divis\xE3o Betim",
+      "Divis\xE3o Belo Horizonte Norte",
+      "Divis\xE3o Igarap\xE9",
+      "Divis\xE3o Ibirit\xE9",
+      "Divis\xE3o Betim Leste"
+    ],
+    "REGIONAL BELO HORIZONTE 2": [
+      "Divis\xE3o Venda Nova",
+      "Divis\xE3o Barreiro",
+      "Divis\xE3o Ribeir\xE3o das Neves",
+      "Divis\xE3o Pedro Leopoldo",
+      "Divis\xE3o Contagem",
+      "Divis\xE3o Sabar\xE1",
+      "Divis\xE3o Contagem Sul",
+      "Divis\xE3o Santa Luzia",
+      "Divis\xE3o Esmeraldas",
+      "Divis\xE3o Caet\xE9"
+    ],
+    "REGIONAL CAMPOS DAS VERTENTES": [
+      "Divis\xE3o Ub\xE1",
+      "Divis\xE3o Muriae",
+      "Divis\xE3o Cataguases",
+      "Divis\xE3o Barbacena Norte",
+      "Divis\xE3o Barbacena Sul",
+      "Divis\xE3o S\xE3o Jo\xE3o del Rei",
+      "Divis\xE3o Rio Pomba",
+      "Divis\xE3o Manhua\xE7u",
+      "Divis\xE3o Lajinha",
+      "Divis\xE3o Astolfo Dutra"
+    ],
+    "REGIONAL CENTRO OESTE DE MINAS": [
+      "Divis\xE3o Formiga",
+      "Divis\xE3o Campo Belo",
+      "Divis\xE3o Arcos Norte",
+      "Divis\xE3o Bom Despacho",
+      "Divis\xE3o Santo Ant\xF4nio do Monte",
+      "Divis\xE3o Iguatama",
+      "Divis\xE3o Cana Verde",
+      "Divis\xE3o Arcos Centro",
+      "Divis\xE3o Ara\xFAjos",
+      "Divis\xE3o Itapecerica"
+    ],
+    "REGIONAL EXTREMA": [
+      "Divis\xE3o Camanducaia",
+      "Divis\xE3o Extrema",
+      "Divis\xE3o Cambu\xED",
+      "Divis\xE3o Toledo",
+      "Divis\xE3o Vargem"
+    ],
+    "REGIONAL JUIZ DE FORA": [
+      "Divis\xE3o Juiz de Fora Sul",
+      "Divis\xE3o Juiz de Fora Norte",
+      "Divis\xE3o Juiz de Fora Oeste",
+      "Divis\xE3o Juiz de Fora Leste",
+      "Divis\xE3o Ch\xE1cara",
+      "Divis\xE3o Santana do Deserto",
+      "Divis\xE3o Juiz de Fora Centro"
+    ],
+    "REGIONAL LAVRAS": [
+      "Divis\xE3o Lavras",
+      "Divis\xE3o Tr\xEAs Pontas",
+      "Divis\xE3o Campos Gerais",
+      "Divis\xE3o Santo Ant\xF4nio do Ampar",
+      "Divis\xE3o Alfenas"
+    ],
+    "REGIONAL NORTE DE MINAS": [
+      "Divis\xE3o Curvelo Centro",
+      "Divis\xE3o Montes Claros",
+      "Divis\xE3o Sete Lagoas",
+      "Divis\xE3o Pirapora",
+      "Divis\xE3o Curvelo Sul",
+      "Divis\xE3o Janu\xE1ria",
+      "Divis\xE3o Capelinha",
+      "Divis\xE3o Felixl\xE2ndia",
+      "Divis\xE3o Inimutaba",
+      "Divis\xE3o Corinto",
+      "Divis\xE3o Turmalina",
+      "Divis\xE3o Jana\xFAba"
+    ],
+    "REGIONAL OESTE DE MINAS": [
+      "Divis\xE3o Divin\xF3polis",
+      "Divis\xE3o Par\xE1 de Minas",
+      "Divis\xE3o Betim Oeste",
+      "Divis\xE3o Ita\xFAna",
+      "Divis\xE3o Papagaios",
+      "Divis\xE3o Nova Serrana",
+      "Divis\xE3o Mateus Leme",
+      "Divis\xE3o Cl\xE1udio"
+    ],
+    "REGIONAL PASSOS": [
+      "Divis\xE3o Guaxup\xE9",
+      "Divis\xE3o Piumhi",
+      "Divis\xE3o Passos",
+      "Divis\xE3o Pimenta",
+      "Divis\xE3o Concei\xE7\xE3o da Aparecida",
+      "Divis\xE3o Capit\xF3lio",
+      "Divis\xE3o S\xE3o Sebasti\xE3o do Parai"
+    ],
+    "REGIONAL PATOS DE MINAS": [
+      "Divis\xE3o Jo\xE3o Pinheiro",
+      "Divis\xE3o Patos de Minas",
+      "Divis\xE3o Presidente Oleg\xE1rio",
+      "Divis\xE3o Varj\xE3o de Minas",
+      "Divis\xE3o Vazante",
+      "Divis\xE3o Lagoa Formosa",
+      "Divis\xE3o Tr\xEAs Marias"
+    ],
+    "REGIONAL POUSO ALEGRE": [
+      "Divis\xE3o Santa Rita do Sapuca\xED",
+      "Divis\xE3o Itajuba",
+      "Divis\xE3o Pouso Alegre Centro",
+      "Divis\xE3o Parais\xF3polis",
+      "Divis\xE3o Borda da Mata",
+      "Divis\xE3o Pouso Alegre Sul",
+      "Divis\xE3o Congonhal"
+    ],
+    "REGIONAL TRIANGULO MINEIRO I": [
+      "Divis\xE3o Monte Carmelo",
+      "Divis\xE3o Araguari Sul",
+      "Divis\xE3o Uberl\xE2ndia Norte",
+      "Divis\xE3o Santa Juliana",
+      "Divis\xE3o Araguari Norte",
+      "Divis\xE3o Uberl\xE2ndia Leste"
+    ],
+    "REGIONAL TRI\xC2NGULO MINEIRO II": [
+      "Divis\xE3o Uberl\xE2ndia Sul",
+      "Divis\xE3o Ituiutaba",
+      "Divis\xE3o Monte Alegre de Minas",
+      "Divis\xE3o Prata",
+      "Divis\xE3o Capin\xF3polis",
+      "Divis\xE3o Uberl\xE2ndia Oeste",
+      "Divis\xE3o Campina Verde"
+    ],
+    "REGIONAL UBERABA": [
+      "Divis\xE3o Uberaba Norte",
+      "Divis\xE3o Frutal",
+      "Divis\xE3o Uberaba Sul",
+      "Divis\xE3o Concei\xE7\xE3o das Alagoas"
+    ],
+    "REGIONAL VALE DO A\xC7O": [
+      "Divis\xE3o Ipatinga",
+      "Divis\xE3o Jo\xE3o Monlevade",
+      "Divis\xE3o Coronel Fabriciano",
+      "Divis\xE3o Governador Valadares",
+      "Divis\xE3o M\xE9dio Piracicaba",
+      "Divis\xE3o Guanh\xE3es"
+    ],
+    "REGIONAL VARGINHA": [
+      "Divis\xE3o Varginha Centro",
+      "Divis\xE3o S\xE3o Louren\xE7o",
+      "Divis\xE3o Aiuruoca",
+      "Divis\xE3o S\xE3o Thom\xE9 das Letras",
+      "Divis\xE3o Varginha Sul",
+      "Divis\xE3o Caxambu",
+      "Divis\xE3o Varginha Norte"
+    ],
+    "REGIONAL ZONA DA MATA": [
+      "Divis\xE3o Congonhas",
+      "Divis\xE3o Conselheiro Lafaiete",
+      "Divis\xE3o Caranda\xED",
+      "Divis\xE3o Ouro Preto",
+      "Divis\xE3o Mariana",
+      "Divis\xE3o Ouro Branco"
+    ],
+    "REGIONAL BEL\xC9M": [
+      "Divis\xE3o Bel\xE9m Norte",
+      "Divis\xE3o Bel\xE9m Sul",
+      "Divis\xE3o Paragominas",
+      "Divis\xE3o Castanhal",
+      "Divis\xE3o Bel\xE9m Leste"
+    ],
+    "REGIONAL CARAJ\xC1S": [
+      "Divis\xE3o Marab\xE1",
+      "Divis\xE3o Parauapebas",
+      "Divis\xE3o Reden\xE7\xE3o",
+      "Divis\xE3o Cana\xE3 dos Caraj\xE1s",
+      "Divis\xE3o Tucuru\xED",
+      "Divis\xE3o Curion\xF3polis"
+    ],
+    "REGIONAL SANTAR\xC9M": [
+      "Divis\xE3o Santar\xE9m",
+      "Divis\xE3o Belterra",
+      "Divis\xE3o Alter do Ch\xE3o",
+      "Divis\xE3o Mojui Dos Campos",
+      "Divis\xE3o Itaituba",
+      "Divis\xE3o Uruar\xE1",
+      "Divis\xE3o Altamira"
+    ],
+    "REGIONAL PARA\xCDBA": [
+      "Divis\xE3o Jo\xE3o Pessoa",
+      "Divis\xE3o Monteiro",
+      "Divis\xE3o Conde",
+      "Divis\xE3o Santa Rita",
+      "Divis\xE3o Alto Oeste"
+    ],
     "REGIONAL CAMPO LARGO": [
       "Divis\xE3o Campo Largo Oeste",
       "Divis\xE3o Campo Magro Sul",
@@ -87433,7 +88005,6 @@ This typically indicates that your device does not have a healthy Internet conne
       "Divis\xE3o Curitiba Leste II",
       "Divis\xE3o Curitiba Sul II",
       "Divis\xE3o Curitiba Extremo Sul I",
-      "Divis\xE3o Curitiba Extremo Sul I",
       "Divis\xE3o Curitiba Oeste II",
       "Divis\xE3o Almirante Tamandar\xE9 II"
     ],
@@ -87443,10 +88014,10 @@ This typically indicates that your device does not have a healthy Internet conne
       "Divis\xE3o Curitiba III Oeste",
       "Divis\xE3o Curitiba III Sul",
       "Divis\xE3o Arauc\xE1ria Norte",
-      "Divis\xE3o Curitiba III Extremo Oeste",
+      "Divis\xE3o Curitiba III Extremo O",
       "Divis\xE3o Curitiba III Sudeste",
       "Divis\xE3o Arauc\xE1ria Leste",
-      "Divis\xE3o Curitiba III Extremo Sul"
+      "Divis\xE3o Curitiba III Extremo S"
     ],
     "REGIONAL CURITIBA V": [
       "Divis\xE3o Pinhais Sul",
@@ -87458,13 +88029,13 @@ This typically indicates that your device does not have a healthy Internet conne
       "Divis\xE3o Curitiba Extremo Leste"
     ],
     "REGIONAL FAZENDA RIO GRANDE": [
-      "Divis\xE3o Fazenda Rio Grande Norte",
+      "Divis\xE3o Fazenda Rio Grande Nor",
       "Divis\xE3o Fazenda Rio Grande Sul",
       "Divis\xE3o Curitiba Extremo Oeste",
-      "Divis\xE3o Fazenda Rio Grande Leste",
-      "Divis\xE3o Fazenda Rio Grande Oeste",
+      "Divis\xE3o Fazenda Rio Grande Les",
+      "Divis\xE3o Fazenda Rio Grande Oes",
       "Divis\xE3o Curitiba Sudeste VI",
-      "Divis\xE3o Fazenda Rio Grande Centro"
+      "Divis\xE3o Fazenda Rio Grande Cen"
     ],
     "REGIONAL LITORAL DO PARAN\xC1": [
       "Divis\xE3o Paranagu\xE1",
@@ -87510,9 +88081,9 @@ This typically indicates that your device does not have a healthy Internet conne
     "REGIONAL OESTE DO PARAN\xC1": [
       "Divis\xE3o Foz do Igua\xE7u",
       "Divis\xE3o Cascavel Norte",
-      "Divis\xE3o Santa Terezinha de Itaipu",
+      "Divis\xE3o Santa Terezinha de Ita",
       "Divis\xE3o Toledo",
-      "Divis\xE3o Marechal C\xE2ndido Rondon",
+      "Divis\xE3o Marechal C\xE2ndido Rondo",
       "Divis\xE3o Cascavel Sul",
       "Divis\xE3o Medianeira"
     ],
@@ -87530,11 +88101,23 @@ This typically indicates that your device does not have a healthy Internet conne
       "Divis\xE3o Arapongas",
       "Divis\xE3o Apucarana",
       "Divis\xE3o Apucarana Sul",
-      "Divis\xE3o Londrina Leste"
+      "Divis\xE3o Londrina Leste",
+      "Divis\xE3o Barra do Pira\xED",
+      "Divis\xE3o Miguel Pereira",
+      "Divis\xE3o Paracambi",
+      "Divis\xE3o Japeri",
+      "Divis\xE3o Paty do Alferes",
+      "Divis\xE3o Serop\xE9dica",
+      "Divis\xE3o Japeri Centro",
+      "Divis\xE3o Mendes",
+      "Divis\xE3o Paulo de Frontin",
+      "Divis\xE3o Lages",
+      "Divis\xE3o Valen\xE7a",
+      "Divis\xE3o Vassouras"
     ],
     "REGIONAL VALE DO IVA\xCD": [
       "Divis\xE3o Terra Rica",
-      "Divis\xE3o Santa Cruz de Monte Castelo",
+      "Divis\xE3o Santa Cruz de Monte Ca",
       "Divis\xE3o S\xE3o Carlos do Iva\xED",
       "Divis\xE3o Paranava\xED Norte",
       "Divis\xE3o Alto Paran\xE1",
@@ -87547,8 +88130,279 @@ This typically indicates that your device does not have a healthy Internet conne
       "Divis\xE3o Lapa",
       "Divis\xE3o Mariental",
       "Divis\xE3o Porto Amazonas",
-      "Divis\xE3o Campo do Tenente",
+      "Divis\xE3o Campo Tenente",
       "Divis\xE3o Cruz Machado"
+    ],
+    "REGIONAL AGRESTE": [
+      "Divis\xE3o Caruaru Centro",
+      "Divis\xE3o Garanhuns",
+      "Divis\xE3o Caruaru Leste",
+      "Divis\xE3o Vit\xF3ria de Santo Ant\xE3o",
+      "Divis\xE3o Bezerros",
+      "Divis\xE3o Toritama",
+      "Divis\xE3o Gravat\xE1 Centro",
+      "Divis\xE3o Lajedo",
+      "Divis\xE3o Caruaru Norte",
+      "Divis\xE3o Santa Cruz",
+      "Divis\xE3o Gravat\xE1 Norte",
+      "Divis\xE3o Carpina"
+    ],
+    "REGIONAL RECIFE I": [
+      "Divis\xE3o Recife Centro",
+      "Divis\xE3o Jaboat\xE3o dos Guararape",
+      "Divis\xE3o Recife Sul",
+      "Divis\xE3o Litoral Sul",
+      "Divis\xE3o Ribeir\xE3o",
+      "Divis\xE3o Jaboat\xE3o Sul"
+    ],
+    "REGIONAL RECIFE II": [
+      "Divis\xE3o Olinda",
+      "Divis\xE3o Camaragibe",
+      "Divis\xE3o Recife Norte",
+      "Divis\xE3o Recife Oeste",
+      "Divis\xE3o Paulista"
+    ],
+    "REGIONAL SERT\xC3O": [
+      "Divis\xE3o Brejinho",
+      "Divis\xE3o Afogados da Ingazeira",
+      "Divis\xE3o Araripina",
+      "Divis\xE3o Petrolina Centro",
+      "Divis\xE3o Arcoverde",
+      "Divis\xE3o Ouricuri",
+      "Divis\xE3o Triunfo",
+      "Divis\xE3o Petrolina Norte"
+    ],
+    "REGIONAL PIAUI SUL": [
+      "Divis\xE3o Bom Jesus",
+      "Divis\xE3o Cristino Castro",
+      "Divis\xE3o Uru\xE7u\xED",
+      "Divis\xE3o Palmeira do Piau\xED",
+      "Divis\xE3o Canto do Buriti"
+    ],
+    "REGIONAL BAIXADA FLUMINENSE I": [
+      "Divis\xE3o Nil\xF3polis Sul",
+      "Divis\xE3o Mesquita",
+      "Divis\xE3o Nova Igua\xE7u",
+      "Divis\xE3o S\xE3o Jo\xE3o de Meriti",
+      "Divis\xE3o Sul Baixada",
+      "Divis\xE3o Centro Baixada",
+      "Divis\xE3o Queimados",
+      "Divis\xE3o Nil\xF3polis Centro",
+      "Divis\xE3o Miguel Couto",
+      "Divis\xE3o S\xE3o Jo\xE3o de Meriti Nor",
+      "Divis\xE3o Mesquita Norte",
+      "Divis\xE3o Vila de Cava"
+    ],
+    "REGIONAL BAIXADA FLUMINENSE II": [
+      "Divis\xE3o Belford Roxo",
+      "Divis\xE3o Caxias Centro",
+      "Divis\xE3o Piabet\xE1",
+      "Divis\xE3o Santa Cruz da Serra",
+      "Divis\xE3o Xer\xE9m",
+      "Divis\xE3o Mag\xE9",
+      "Divis\xE3o Caxias Sul",
+      "Divis\xE3o Guapimirim",
+      "Divis\xE3o Belford Roxo Centro",
+      "Divis\xE3o Saracuruna",
+      "Divis\xE3o Caxias Norte",
+      "Divis\xE3o Mau\xE1",
+      "Divis\xE3o Caxias Leste",
+      "Divis\xE3o Duque de Caxias"
+    ],
+    "REGIONAL CAMPOS DOS GOYTACAZES": [
+      "Divis\xE3o Campos Dos Goytacazes",
+      "Divis\xE3o S\xE3o Fidelis",
+      "Divis\xE3o Bom Jesus do Itabapoan",
+      "Divis\xE3o Maca\xE9",
+      "Divis\xE3o Itaperuna",
+      "Divis\xE3o S\xE3o Jo\xE3o da Barra",
+      "Divis\xE3o S\xE3o Francisco de Itaba",
+      "Divis\xE3o Italva",
+      "Divis\xE3o Santo Ant\xF4nio de P\xE1dua",
+      "Divis\xE3o Farol de S\xE3o Tom\xE9",
+      "Divis\xE3o Itaperuna Sul",
+      "Divis\xE3o Miracema",
+      "Divis\xE3o Porci\xFAncula"
+    ],
+    "REGIONAL COSTA VERDE": [
+      "Divis\xE3o Angra dos Reis",
+      "Divis\xE3o Itagua\xED",
+      "Divis\xE3o Mangaratiba",
+      "Divis\xE3o Costa Verde Oeste",
+      "Divis\xE3o Mambucaba",
+      "Divis\xE3o Santa Cruz",
+      "Divis\xE3o Lidice",
+      "Divis\xE3o Sepetiba",
+      "Divis\xE3o Muriqui",
+      "Divis\xE3o Angra Leste"
+    ],
+    "REGIONAL LAGOS": [
+      "Divis\xE3o Arraial do Cabo",
+      "Divis\xE3o Cabo Frio",
+      "Divis\xE3o Buzios",
+      "Divis\xE3o Rio das Ostras",
+      "Divis\xE3o Araruama",
+      "Divis\xE3o Saquarema",
+      "Divis\xE3o S\xE3o Pedro da Aldeia",
+      "Divis\xE3o Unamar",
+      "Divis\xE3o Iguaba Grande"
+    ],
+    "REGIONAL LESTE FLUMINENSE": [
+      "Divis\xE3o S\xE3o Gon\xE7alo Norte",
+      "Divis\xE3o Maric\xE1 Leste",
+      "Divis\xE3o Itabora\xED",
+      "Divis\xE3o Itaipua\xE7u",
+      "Divis\xE3o Rio Bonito",
+      "Divis\xE3o Manilha",
+      "Divis\xE3o S\xE3o Gon\xE7alo Sul",
+      "Divis\xE3o Maric\xE1 Oeste",
+      "Divis\xE3o S\xE3o Gon\xE7alo Centro",
+      "Divis\xE3o Itaipua\xE7u II",
+      "Divis\xE3o Silva Jardim"
+    ],
+    "REGIONAL NITEROI": [
+      "Divis\xE3o Niter\xF3i Centro",
+      "Divis\xE3o Niter\xF3i Sul",
+      "Divis\xE3o Oce\xE2nica",
+      "Divis\xE3o Niter\xF3i Norte",
+      "Divis\xE3o Niter\xF3i Leste",
+      "Divis\xE3o Niter\xF3i Oeste",
+      "Divis\xE3o Oce\xE2nica III",
+      "Divis\xE3o Oce\xE2nica II"
+    ],
+    "REGIONAL RIO DE JANEIRO - RJ1": [
+      "Divis\xE3o Centro - RJ1",
+      "Divis\xE3o Tijuca - RJ1",
+      "Divis\xE3o Bonsucesso - RJ1",
+      "Divis\xE3o Penha - RJ1",
+      "Divis\xE3o Copacabana - RJ1",
+      "Divis\xE3o Ilha do Governador",
+      "Divis\xE3o M\xE9ier - RJ1",
+      "Divis\xE3o Maracan\xE3",
+      "Divis\xE3o Suburbana -RJ1",
+      "Divis\xE3o Cachambi - RJ1",
+      "Divis\xE3o Gale\xE3o - RJ1",
+      "Divis\xE3o Leblon - RJ1",
+      "Divis\xE3o Ribeira - RJ1",
+      "Divis\xE3o Imperial - RJ1"
+    ],
+    "REGIONAL RIO DE JANEIRO - RJ2": [
+      "Divis\xE3o Mendanha - RJ2",
+      "Divis\xE3o Rio do A - RJ2",
+      "Divis\xE3o Paci\xEAncia - RJ2",
+      "Divis\xE3o Rio da Prata - RJ2",
+      "Divis\xE3o Guaratiba - RJ2",
+      "Divis\xE3o Bangu - RJ2",
+      "Divis\xE3o Mato Alto - RJ2",
+      "Divis\xE3o Inhoa\xEDba",
+      "Divis\xE3o Padre Miguel - RJ2",
+      "Divis\xE3o Campo Grande - RJ2",
+      "Divis\xE3o Barra de Guaratiba",
+      "Divis\xE3o Magalh\xE3es Bastos - RJ2",
+      "Divis\xE3o Campinho - RJ2"
+    ],
+    "REGIONAL RIO DE JANEIRO - RJ3": [
+      "Divis\xE3o Vila Valqueire - RJ3",
+      "Divis\xE3o Inha\xFAma - RJ3",
+      "Divis\xE3o Vila Militar - RJ3",
+      "Divis\xE3o Madureira - RJ3",
+      "Divis\xE3o Iraj\xE1 - RJ3",
+      "Divis\xE3o Sulacap - RJ3",
+      "Divis\xE3o Penha Circular - RJ3",
+      "Divis\xE3o Piedade - RJ3",
+      "Divis\xE3o Pavuna - RJ3"
+    ],
+    "REGIONAL RIO DE JANEIRO - RJ4": [
+      "Divis\xE3o Oeste RJ4",
+      "Divis\xE3o Recreio RJ4",
+      "Divis\xE3o Curicica - RJ4",
+      "Divis\xE3o Barra RJ4",
+      "Divis\xE3o Taquara RJ4",
+      "Divis\xE3o Gard\xEAnia RJ4"
+    ],
+    "REGIONAL SERRANA": [
+      "Divis\xE3o Petr\xF3polis Centro",
+      "Divis\xE3o Petr\xF3polis Norte",
+      "Divis\xE3o Nova Friburgo",
+      "Divis\xE3o Cachoeiras de Macacu",
+      "Divis\xE3o Teres\xF3polis",
+      "Divis\xE3o Rio das Flores",
+      "Divis\xE3o Sumidouro",
+      "Divis\xE3o Areal",
+      "Divis\xE3o Tr\xEAs Rios",
+      "Divis\xE3o Bom Jardim",
+      "Divis\xE3o Nova Friburgo Norte",
+      "Divis\xE3o Para\xEDba do sul"
+    ],
+    "REGIONAL SUL FLUMINENSE": [
+      "Divis\xE3o Barra Mansa",
+      "Divis\xE3o Volta Redonda",
+      "Divis\xE3o Resende",
+      "Divis\xE3o Pira\xED",
+      "Divis\xE3o Penedo",
+      "Divis\xE3o Visconde de Mau\xE1",
+      "Divis\xE3o Pinheiral",
+      "Divis\xE3o Volta Redonda Sul",
+      "Divis\xE3o Porto Real",
+      "Divis\xE3o Bananal",
+      "Divis\xE3o Volta Redonda Oeste"
+    ],
+    "REGIONAL NORDESTE III": [
+      "Divis\xE3o Natal",
+      "Divis\xE3o Parnamirim",
+      "Divis\xE3o Mossor\xF3",
+      "Divis\xE3o Cear\xE1-Mirim"
+    ],
+    "REGIONAL PASSO FUNDO": [
+      "Divis\xE3o Maximiliano de Almeida",
+      "Divis\xE3o Passo Fundo Sul",
+      "Divis\xE3o Mara\xFA",
+      "Divis\xE3o Passo Fundo Norte"
+    ],
+    "REGIONAL PORTO ALEGRE": [
+      "Divis\xE3o Porto Alegre",
+      "Divis\xE3o Alvorada",
+      "Divis\xE3o Porto Alegre Sul",
+      "Divis\xE3o Porto Alegre Norte",
+      "Divis\xE3o Litoral Ga\xFAcho",
+      "Divis\xE3o Extremo Sul",
+      "Divis\xE3o Vale dos Sinos",
+      "Divis\xE3o Carbon\xEDfera",
+      "Divis\xE3o Vale do Gravata\xED"
+    ],
+    "REGIONAL SANTA MARIA": [
+      "Divis\xE3o Santa Maria",
+      "Divis\xE3o Tr\xEAs Passos",
+      "Divis\xE3o Fronteira Oeste",
+      "Divis\xE3o Tupanciret\xE3",
+      "Divis\xE3o S\xE3o Gabriel",
+      "Divis\xE3o Sant'Ana do Livramento",
+      "Divis\xE3o Itaara",
+      "Divis\xE3o Alegrete",
+      "Divis\xE3o Horizontina"
+    ],
+    "REGIONAL SERRA GAUCHA": [
+      "Divis\xE3o Santa Cruz do Sul",
+      "Divis\xE3o Bento Gon\xE7alves",
+      "Divis\xE3o Caxias do Sul",
+      "Divis\xE3o Hort\xEAnsias"
+    ],
+    "REGIONAL ROND\xD4NIA": [
+      "Divis\xE3o Ariquemes",
+      "Divis\xE3o Porto Velho",
+      "Divis\xE3o Cacoal",
+      "Divis\xE3o Pimenta Bueno",
+      "Divis\xE3o Vilhena",
+      "Divis\xE3o J\xED-Paran\xE1"
+    ],
+    "REGIONAL RORAIMA": [
+      "Divis\xE3o Boa Vista Sul",
+      "Divis\xE3o Boa Vista Norte",
+      "Divis\xE3o Boa Vista Oeste",
+      "Divis\xE3o Boa Vista Leste",
+      "Divis\xE3o Boa Vista Centro",
+      "Divis\xE3o Rorain\xF3polis",
+      "Divis\xE3o Rorain\xF3polis II"
     ],
     "REGIONAL CHAPEC\xD3": [
       "Divis\xE3o Passo Fundo",
@@ -87586,7 +88440,16 @@ This typically indicates that your device does not have a healthy Internet conne
       "Divis\xE3o Joinville Norte",
       "Divis\xE3o Itapo\xE1",
       "Divis\xE3o Joinville Leste",
-      "Divis\xE3o Itapoa Norte"
+      "Divis\xE3o Itapoa Norte",
+      "Divis\xE3o Ubatuba",
+      "Divis\xE3o S\xE3o Sebasti\xE3o Norte 1",
+      "Divis\xE3o Caraguatatuba Sul",
+      "Divis\xE3o Ilhabela",
+      "Divis\xE3o Caraguatatuba Norte",
+      "Divis\xE3o S\xE3o Sebasti\xE3o Sul",
+      "Divis\xE3o Caraguatatuba Centro",
+      "Divis\xE3o S\xE3o Sebasti\xE3o Centro",
+      "Divis\xE3o S\xE3o Sebasti\xE3o Norte 2"
     ],
     "REGIONAL LITORAL SUL": [
       "Divis\xE3o Tijucas",
@@ -87619,6 +88482,928 @@ This typically indicates that your device does not have a healthy Internet conne
       "Divis\xE3o Blumenau",
       "Divis\xE3o Alto Vale",
       "Divis\xE3o Indaial"
+    ],
+    "REGIONAL ABC1": [
+      "Divis\xE3o S\xE3o Bernardo do Campo",
+      "Divis\xE3o Riacho Grande"
+    ],
+    "REGIONAL ABC2": [
+      "Divis\xE3o Santo Andr\xE9 Centro",
+      "Divis\xE3o Santo Andr\xE9 Sul",
+      "Divis\xE3o Santo Andr\xE9 Extremo No",
+      "Divis\xE3o Santo Andr\xE9 Extremo Su",
+      "Divis\xE3o Santo Andr\xE9 Norte",
+      "Divis\xE3o Santo Andr\xE9 Oeste",
+      "Divis\xE3o Santo Andr\xE9 Leste"
+    ],
+    "REGIONAL ABC3": [
+      "Divis\xE3o Mau\xE1 Centro - ABC3",
+      "Divis\xE3o Mau\xE1 Oeste - ABC3",
+      "Divis\xE3o Mau\xE1 Sul - ABC3",
+      "Divis\xE3o Mau\xE1 Norte - ABC3",
+      "Divis\xE3o Mau\xE1 Leste - ABC3",
+      "Divis\xE3o Mau\xE1 Extremo Leste",
+      "Divis\xE3o Mau\xE1 Extremo Sul",
+      "Divis\xE3o Mau\xE1 Extremo Oeste",
+      "Divis\xE3o Mau\xE1 Extremo Norte"
+    ],
+    "REGIONAL ABC4": [
+      "Divis\xE3o Ribeir\xE3o Pires Centro",
+      "Divis\xE3o Rio Grande da Serra",
+      "Divis\xE3o Paranapiacaba",
+      "Divis\xE3o Ribeir\xE3o Pires Sul",
+      "Divis\xE3o Ribeir\xE3o Pires Norte",
+      "Divis\xE3o Ribeir\xE3o Pires Leste"
+    ],
+    "REGIONAL ABC5": [
+      "Divis\xE3o Santo Andr\xE9 Oeste",
+      "Divis\xE3o Santo Andr\xE9 Leste",
+      "Divis\xE3o Santo Andr\xE9 Norte",
+      "Divis\xE3o Santo Andr\xE9 Extremo Oe",
+      "Divis\xE3o Santo Andr\xE9 Extremo Le",
+      "Divis\xE3o Santo Andr\xE9 Extremo No",
+      "Divis\xE3o Santo Andr\xE9 Centro",
+      "Divis\xE3o Santo Andr\xE9 Sul"
+    ],
+    "REGIONAL ABC6": [
+      "Divis\xE3o S\xE3o Caetano do Sul Sul",
+      "Divis\xE3o S\xE3o Caetano do Sul Cen",
+      "Divis\xE3o S\xE3o Caetano do Sul Les",
+      "Divis\xE3o S\xE3o Caetano do Sul Oes"
+    ],
+    "REGIONAL ABC7": [
+      "Divis\xE3o Diadema Sul",
+      "Divis\xE3o Diadema Norte",
+      "Divis\xE3o Diadema Leste",
+      "Divis\xE3o Diadema Oeste"
+    ],
+    "REGIONAL ALTO DO TIET\xCA 1": [
+      "Divis\xE3o Suzano",
+      "Divis\xE3o Ferraz de Vasconcelos",
+      "Divis\xE3o Po\xE1",
+      "Divis\xE3o Suzano Sul",
+      "Divis\xE3o Po\xE1 Sul"
+    ],
+    "REGIONAL ALTO DO TIET\xCA 2": [
+      "Divis\xE3o Biritiba Mirim",
+      "Divis\xE3o Guararema",
+      "Divis\xE3o Mogi das Cruzes Centro",
+      "Divis\xE3o Mogi das Cruzes Oeste",
+      "Divis\xE3o Saba\xFAna",
+      "Divis\xE3o Mogi das Cruzes Sul",
+      "Divis\xE3o Mogi das Cruzes Norte",
+      "Divis\xE3o Mogi das Cruzes Extrem",
+      "Divis\xE3o Mogi das Cruzes Leste"
+    ],
+    "REGIONAL ALTO DO TIET\xCA 3": [
+      "Divis\xE3o Itaquaquecetuba",
+      "Divis\xE3o Aruj\xE1",
+      "Divis\xE3o Santa Isabel",
+      "Divis\xE3o Itaquaquecetuba Sul",
+      "Divis\xE3o Igarat\xE1",
+      "Divis\xE3o Itaquaquecetuba Leste",
+      "Divis\xE3o Aruj\xE1 Norte"
+    ],
+    "REGIONAL AMERICANA": [
+      "Divis\xE3o Santa B\xE1rbara d'Oeste",
+      "Divis\xE3o Americana",
+      "Divis\xE3o Cosm\xF3polis",
+      "Divis\xE3o Artur Nogueira",
+      "Divis\xE3o Holambra",
+      "Divis\xE3o Americana Sul",
+      "Divis\xE3o Engenheiro Coelho"
+    ],
+    "REGIONAL ANDRADINA": [
+      "Divis\xE3o Castilho",
+      "Divis\xE3o Ilha Solteira",
+      "Divis\xE3o Andradina",
+      "Divis\xE3o Pereira Barreto",
+      "Divis\xE3o Murutinga do Sul",
+      "Divis\xE3o Mirand\xF3polis"
+    ],
+    "REGIONAL ARA\xC7ATUBA": [
+      "Divis\xE3o Birigui",
+      "Divis\xE3o Ara\xE7atuba",
+      "Divis\xE3o Valparaiso",
+      "Divis\xE3o Pen\xE1polis",
+      "Divis\xE3o Piacatu",
+      "Divis\xE3o Luizi\xE2nia",
+      "Divis\xE3o Buritama",
+      "Divis\xE3o Coroados",
+      "Divis\xE3o Guararapes"
+    ],
+    "REGIONAL ARARAQUARA": [
+      "Divis\xE3o Araraquara",
+      "Divis\xE3o Am\xE9rico Brasiliense",
+      "Divis\xE3o Mat\xE3o",
+      "Divis\xE3o Boa Esperan\xE7a do Sul"
+    ],
+    "REGIONAL ARARAS": [
+      "Divis\xE3o Leme",
+      "Divis\xE3o Rio Claro",
+      "Divis\xE3o Santa Gertrudes",
+      "Divis\xE3o Araras"
+    ],
+    "REGIONAL AVAR\xC9": [
+      "Divis\xE3o Manduri",
+      "Divis\xE3o Avar\xE9",
+      "Divis\xE3o Cerqueira C\xE9sar",
+      "Divis\xE3o Holambra II",
+      "Divis\xE3o Paranapanema",
+      "Divis\xE3o Taquarituba",
+      "Divis\xE3o Itai",
+      "Divis\xE3o \xC1guas de Santa B\xE1rbara"
+    ],
+    "REGIONAL BARUERI": [
+      "Divis\xE3o Barueri Norte",
+      "Divis\xE3o Barueri Centro",
+      "Divis\xE3o Alphaville",
+      "Divis\xE3o Barueri Sul",
+      "Divis\xE3o Barueri Leste",
+      "Divis\xE3o Alphaville II"
+    ],
+    "REGIONAL BAURU": [
+      "Divis\xE3o Bauru",
+      "Divis\xE3o Agudos",
+      "Divis\xE3o Piratininga",
+      "Divis\xE3o Pederneiras"
+    ],
+    "REGIONAL BOTUCATU": [
+      "Divis\xE3o Botucatu",
+      "Divis\xE3o Itatinga",
+      "Divis\xE3o S\xE3o Manuel",
+      "Divis\xE3o Guare\xED",
+      "Divis\xE3o Prat\xE2nia",
+      "Divis\xE3o Botucatu Oeste",
+      "Divis\xE3o Bofete",
+      "Divis\xE3o S\xE3o Manuel Centro",
+      "Divis\xE3o Pardinho",
+      "Divis\xE3o Torre de Pedra",
+      "Divis\xE3o Aparecida de S\xE3o Manue"
+    ],
+    "REGIONAL BRAGAN\xC7A": [
+      "Divis\xE3o Bragan\xE7a Paulista Sul",
+      "Divis\xE3o Bragan\xE7a Paulista Cent",
+      "Divis\xE3o Piracaia",
+      "Divis\xE3o Tuiuti",
+      "Divis\xE3o Pinhalzinho",
+      "Divis\xE3o Atibaia Centro",
+      "Divis\xE3o Morungaba",
+      "Divis\xE3o Bragan\xE7a Paulista Nort",
+      "Divis\xE3o Nazar\xE9 Paulista",
+      "Divis\xE3o Pedra Bela",
+      "Divis\xE3o Joan\xF3polis",
+      "Divis\xE3o Bragan\xE7a Paulista Lest",
+      "Divis\xE3o Atibaia Sul",
+      "Divis\xE3o Bom Jesus dos Perd\xF5es"
+    ],
+    "REGIONAL CAIEIRAS": [
+      "Divis\xE3o Caieiras Norte",
+      "Divis\xE3o Franco da Rocha Norte",
+      "Divis\xE3o Franco da Rocha Sul",
+      "Divis\xE3o Caieiras Sul",
+      "Divis\xE3o Franco da Rocha Oeste",
+      "Divis\xE3o Caieiras Oeste"
+    ],
+    "REGIONAL CAMPINAS": [
+      "Divis\xE3o Campinas Centro",
+      "Divis\xE3o Campinas Sul",
+      "Divis\xE3o Campinas Oeste",
+      "Divis\xE3o Campinas Sudoeste"
+    ],
+    "REGIONAL CAMPINAS II": [
+      "Divis\xE3o Campinas Leste",
+      "Divis\xE3o Campinas Norte",
+      "Divis\xE3o Bar\xE3o I",
+      "Divis\xE3o Sousas"
+    ],
+    "REGIONAL CAP\xC3O REDONDO": [
+      "Divis\xE3o Capao Redondo",
+      "Divis\xE3o Campo Limpo",
+      "Divis\xE3o Campo Limpo Leste",
+      "Divis\xE3o Cap\xE3o Redondo Leste"
+    ],
+    "REGIONAL CARAPICU\xCDBA": [
+      "Divis\xE3o Carapicu\xEDba Centro",
+      "Divis\xE3o Carapicu\xEDba Norte",
+      "Divis\xE3o Carapicu\xEDba Oeste",
+      "Divis\xE3o Carapicu\xEDba Sul",
+      "Divis\xE3o Carapicu\xEDba Leste"
+    ],
+    "REGIONAL CERQUILHO": [
+      "Divis\xE3o Cerquilho",
+      "Divis\xE3o Tiet\xEA",
+      "Divis\xE3o Laranjal Paulista",
+      "Divis\xE3o Capivari",
+      "Divis\xE3o Iper\xF3",
+      "Divis\xE3o Rafard",
+      "Divis\xE3o Conchas",
+      "Divis\xE3o Capela do Alto",
+      "Divis\xE3o Mombuca",
+      "Divis\xE3o Ces\xE1rio Lange",
+      "Divis\xE3o Pereiras"
+    ],
+    "REGIONAL CIRCUITO DAS \xC1GUAS": [
+      "Divis\xE3o Amparo",
+      "Divis\xE3o Serra Negra",
+      "Divis\xE3o Aguas de Lindoia",
+      "Divis\xE3o Socorro",
+      "Divis\xE3o Lindoia",
+      "Divis\xE3o Monte Alegre do Sul",
+      "Divis\xE3o Monte Si\xE3o"
+    ],
+    "REGIONAL COTIA I": [
+      "Divis\xE3o Granja Viana",
+      "Divis\xE3o Cotia I Oeste",
+      "Divis\xE3o Cotia I Centro",
+      "Divis\xE3o Cotia I Sul"
+    ],
+    "REGIONAL COTIA II": [
+      "Divis\xE3o Vargem Grande Paulista",
+      "Divis\xE3o Caucaia do Alto Norte",
+      "Divis\xE3o Cotia II Norte",
+      "Divis\xE3o Caucaia do Alto Sul"
+    ],
+    "REGIONAL COTIA III": [
+      "Divis\xE3o Cotia III Centro",
+      "Divis\xE3o Cotia III Leste",
+      "Divis\xE3o Cotia III Sul",
+      "Divis\xE3o Cotia III Norte"
+    ],
+    "REGIONAL FRANCA": [
+      "Divis\xE3o Cristais Paulista",
+      "Divis\xE3o Franca",
+      "Divis\xE3o Pedregulho",
+      "Divis\xE3o Patroc\xEDnio Paulista",
+      "Divis\xE3o Claraval"
+    ],
+    "REGIONAL FRANCISCO MORATO": [
+      "Divis\xE3o Francisco Morato Centr",
+      "Divis\xE3o Francisco Morato Leste",
+      "Divis\xE3o Francisco Morato Oeste",
+      "Divis\xE3o Francisco Morato Norte",
+      "Divis\xE3o Francisco Morato Sul"
+    ],
+    "REGIONAL GUARULHOS I": [
+      "Divis\xE3o Centro Gru I",
+      "Divis\xE3o Leste Gru I",
+      "Divis\xE3o Oeste Gru I",
+      "Divis\xE3o Extremo Leste Gru I",
+      "Divis\xE3o Sul Gru I",
+      "Divis\xE3o Norte GRU I",
+      "Divis\xE3o Extremo Oeste Gru I"
+    ],
+    "REGIONAL GUARULHOS II": [
+      "Divis\xE3o Sul Gru II",
+      "Divis\xE3o Norte Gru II",
+      "Divis\xE3o Extremo Oeste Gru II",
+      "Divis\xE3o Centro Gru II",
+      "Divis\xE3o Extremo Norte Gru II",
+      "Divis\xE3o Leste Gru II"
+    ],
+    "REGIONAL GUARULHOS III": [
+      "Divis\xE3o Extremo Sul Gru III",
+      "Divis\xE3o Extremo Norte Gru III",
+      "Divis\xE3o Sul Gru III",
+      "Divis\xE3o Leste Gru III",
+      "Divis\xE3o Norte Gru III",
+      "Divis\xE3o Centro Gru III",
+      "Divis\xE3o Oeste Gru III",
+      "Divis\xE3o Extremo Leste Gru III"
+    ],
+    "REGIONAL IBI\xDANA": [
+      "Divis\xE3o S\xE3o Roque",
+      "Divis\xE3o Ibi\xFAna",
+      "Divis\xE3o S\xE3o Roque Norte",
+      "Divis\xE3o Ibi\xFAna Leste",
+      "Divis\xE3o S\xE3o Roque Leste",
+      "Divis\xE3o S\xE3o Roque Oeste"
+    ],
+    "REGIONAL ITAPECERICA DA SERRA": [
+      "Divis\xE3o Itapecerica da Serra",
+      "Divis\xE3o Embu das Artes Leste",
+      "Divis\xE3o Embu das Artes Oeste",
+      "Divis\xE3o Embu das Artes Centro",
+      "Divis\xE3o Juquitiba",
+      "Divis\xE3o Embu das Artes Norte"
+    ],
+    "REGIONAL ITAPETININGA": [
+      "Divis\xE3o Tatu\xED",
+      "Divis\xE3o Itapetininga Norte",
+      "Divis\xE3o Alambari",
+      "Divis\xE3o Cap\xE3o Bonito",
+      "Divis\xE3o Itapetininga Oeste",
+      "Divis\xE3o Ribeir\xE3o Grande",
+      "Divis\xE3o Guapiara",
+      "Divis\xE3o Angatuba",
+      "Divis\xE3o Sarapu\xED",
+      "Divis\xE3o Itapetininga Centro",
+      "Divis\xE3o Itapetininga Leste",
+      "Divis\xE3o Itapetininga Sul"
+    ],
+    "REGIONAL ITAPEVA": [
+      "Divis\xE3o Itapeva Norte",
+      "Divis\xE3o Buri",
+      "Divis\xE3o Itaber\xE1",
+      "Divis\xE3o Itarar\xE9 Norte",
+      "Divis\xE3o Taquariva\xED",
+      "Divis\xE3o Itapeva Sul",
+      "Divis\xE3o Itarar\xE9 Sul",
+      "Divis\xE3o Itapeva Leste",
+      "Divis\xE3o Ribeir\xE3o Branco"
+    ],
+    "REGIONAL ITAPEVI": [
+      "Divis\xE3o Itapevi Centro",
+      "Divis\xE3o Itapevi Norte",
+      "Divis\xE3o Itapevi Sul",
+      "Divis\xE3o Itapevi Oeste",
+      "Divis\xE3o Itapevi Leste"
+    ],
+    "REGIONAL ITATIBA": [
+      "Divis\xE3o Itatiba Sul",
+      "Divis\xE3o Itatiba Norte",
+      "Divis\xE3o Itatiba Centro",
+      "Divis\xE3o Itatiba Leste"
+    ],
+    "REGIONAL ITU": [
+      "Divis\xE3o Indaiatuba",
+      "Divis\xE3o Itu",
+      "Divis\xE3o Porto Feliz",
+      "Divis\xE3o Boituva",
+      "Divis\xE3o Salto",
+      "Divis\xE3o Elias Fausto",
+      "Divis\xE3o Salto Norte",
+      "Divis\xE3o Indaiatuba Norte",
+      "Divis\xE3o Indaiatuba Leste",
+      "Divis\xE3o Itu Norte"
+    ],
+    "REGIONAL ITUVERAVA": [
+      "Divis\xE3o Ituverava",
+      "Divis\xE3o Gua\xEDra",
+      "Divis\xE3o Igarapava",
+      "Divis\xE3o Ipu\xE3",
+      "Divis\xE3o Guar\xE1",
+      "Divis\xE3o Miguel\xF3polis",
+      "Divis\xE3o Orlandia",
+      "Divis\xE3o S\xE3o Joaquim da Barra",
+      "Divis\xE3o Nuporanga"
+    ],
+    "REGIONAL JABOTICABAL": [
+      "Divis\xE3o Jaboticabal",
+      "Divis\xE3o Guariba",
+      "Divis\xE3o Ibitinga",
+      "Divis\xE3o Bebedouro",
+      "Divis\xE3o Taquaritinga",
+      "Divis\xE3o Pitangueiras"
+    ],
+    "REGIONAL JANDIRA": [
+      "Divis\xE3o Jandira Centro",
+      "Divis\xE3o Jandira Norte",
+      "Divis\xE3o Jandira Sul",
+      "Divis\xE3o Jandira Oeste"
+    ],
+    "REGIONAL JARAGU\xC1": [
+      "Divis\xE3o Jaragu\xE1",
+      "Divis\xE3o Canta Galo",
+      "Divis\xE3o Panamericano",
+      "Divis\xE3o Aurora",
+      "Divis\xE3o Taipas"
+    ],
+    "REGIONAL JA\xDA": [
+      "Divis\xE3o Bariri",
+      "Divis\xE3o Ja\xFA",
+      "Divis\xE3o Brotas",
+      "Divis\xE3o Itapu\xED"
+    ],
+    "REGIONAL JUNDIA\xCD I": [
+      "Divis\xE3o Jundia\xED Oeste",
+      "Divis\xE3o Jundia\xED Leste",
+      "Divis\xE3o Jundia\xED Extremo Oeste",
+      "Divis\xE3o Jundia\xED Extremo Leste",
+      "Divis\xE3o Jundia\xED Oeste 2",
+      "Divis\xE3o Jundia\xED Centro Leste",
+      "Divis\xE3o Jundia\xED Noroeste"
+    ],
+    "REGIONAL JUNDIA\xCD II": [
+      "Divis\xE3o Jundia\xED Sul",
+      "Divis\xE3o Jundia\xED Norte",
+      "Divis\xE3o Jundia\xED Centro",
+      "Divis\xE3o Jundia\xED Extremo Sul",
+      "Divis\xE3o Jundia\xED Extremo Norte",
+      "Divis\xE3o Jundia\xED II Centro Oest"
+    ],
+    "REGIONAL LEN\xC7\xD3IS PAULISTA": [
+      "Divis\xE3o Len\xE7\xF3is Paulista",
+      "Divis\xE3o Barra Bonita",
+      "Divis\xE3o Arei\xF3polis",
+      "Divis\xE3o Igara\xE7u do Tiet\xEA"
+    ],
+    "REGIONAL LIMEIRA": [
+      "Divis\xE3o Limeira",
+      "Divis\xE3o Cordeir\xF3polis",
+      "Divis\xE3o Iracem\xE1polis",
+      "Divis\xE3o Limeira Sul",
+      "Divis\xE3o Limeira Norte",
+      "Divis\xE3o Limeira Leste"
+    ],
+    "REGIONAL LITORAL SUL I": [
+      "Divis\xE3o Praia Grande Centro",
+      "Divis\xE3o S\xE3o Vicente Centro",
+      "Divis\xE3o S\xE3o Vicente Norte",
+      "Divis\xE3o Praia Grande Sul",
+      "Divis\xE3o Praia Grande Norte",
+      "Divis\xE3o S\xE3o Vicente Sul"
+    ],
+    "REGIONAL LITORAL SUL II": [
+      "Divis\xE3o Mongagu\xE1",
+      "Divis\xE3o Itanha\xE9m",
+      "Divis\xE3o Peruibe",
+      "Divis\xE3o Itariri",
+      "Divis\xE3o Pedro de Toledo"
+    ],
+    "REGIONAL LITORAL SUL III": [
+      "Divis\xE3o Santos",
+      "Divis\xE3o Cubat\xE3o Norte",
+      "Divis\xE3o Guaruj\xE1",
+      "Divis\xE3o Cubat\xE3o Sul",
+      "Divis\xE3o Bertioga",
+      "Divis\xE3o Santos Noroeste"
+    ],
+    "REGIONAL MAIRINQUE": [
+      "Divis\xE3o Mairinque",
+      "Divis\xE3o Alum\xEDnio",
+      "Divis\xE3o Mairinque Norte",
+      "Divis\xE3o Alum\xEDnio Norte",
+      "Divis\xE3o Mairinque Leste",
+      "Divis\xE3o Mairinque Sul",
+      "Divis\xE3o Alum\xEDnio Leste",
+      "Divis\xE3o Mairinque Oeste"
+    ],
+    "REGIONAL MAIRIPOR\xC3": [
+      "Divis\xE3o Mairipor\xE3",
+      "Divis\xE3o Cantareira",
+      "Divis\xE3o Terra Preta",
+      "Divis\xE3o Santa In\xEAs"
+    ],
+    "REGIONAL MAR\xCDLIA": [
+      "Divis\xE3o Marilia",
+      "Divis\xE3o Tup\xE3",
+      "Divis\xE3o Promiss\xE3o",
+      "Divis\xE3o Lins",
+      "Divis\xE3o Assis",
+      "Divis\xE3o Duartina",
+      "Divis\xE3o Cafel\xE2ndia",
+      "Divis\xE3o Vera Cruz"
+    ],
+    "REGIONAL MOCOCA": [
+      "Divis\xE3o Casa Branca",
+      "Divis\xE3o Caconde",
+      "Divis\xE3o Mococa",
+      "Divis\xE3o S\xE3o Jos\xE9 do Rio Pardo",
+      "Divis\xE3o S\xE3o Sebasti\xE3o da Grama",
+      "Divis\xE3o Tapiratiba"
+    ],
+    "REGIONAL MOGIANA": [
+      "Divis\xE3o Mogi Mirim",
+      "Divis\xE3o Mogi Gua\xE7u",
+      "Divis\xE3o Itapira Norte",
+      "Divis\xE3o Esp\xEDrito Santo do Pinh",
+      "Divis\xE3o Jaguari\xFAna",
+      "Divis\xE3o Pedreira",
+      "Divis\xE3o Estiva Gerbi",
+      "Divis\xE3o Itapira Sul"
+    ],
+    "REGIONAL NORDESTE VII": [
+      "Divis\xE3o Socorro",
+      "Divis\xE3o Propri\xE1",
+      "Divis\xE3o Barra dos Coqueiros",
+      "Divis\xE3o Aracaju",
+      "Divis\xE3o Tobias Barreto",
+      "Divis\xE3o Maceio Centro",
+      "Divis\xE3o Arapiraca Centro",
+      "Divis\xE3o S\xE3o Miguel dos Campos",
+      "Divis\xE3o Maceio Norte",
+      "Divis\xE3o Arapiraca Norte",
+      "Divis\xE3o Santana do Ipanema",
+      "Divis\xE3o Rio Largo",
+      "Divis\xE3o Bom Conselho"
+    ],
+    "REGIONAL OSASCO 1": [
+      "Divis\xE3o Osasco 1 Centro",
+      "Divis\xE3o Osasco 1 Leste",
+      "Divis\xE3o Osasco 1 Extremo Sul",
+      "Divis\xE3o Osasco 1 Extremo Oeste"
+    ],
+    "REGIONAL OSASCO 2": [
+      "Divis\xE3o Osasco 2 Norte",
+      "Divis\xE3o Osasco 2 Centro Velho",
+      "Divis\xE3o Osasco 2 Oeste",
+      "Divis\xE3o Extremo Leste OZ 2"
+    ],
+    "REGIONAL OSASCO 3": [
+      "Divis\xE3o Osasco 3 Extremo Norte",
+      "Divis\xE3o Osasco 3 Sul",
+      "Divis\xE3o Osasco 3 Centro",
+      "Divis\xE3o Osasco 3 Oeste",
+      "Divis\xE3o Osasco 3 Norte",
+      "Divis\xE3o Osasco 3 Extremo Oeste"
+    ],
+    "REGIONAL OSASCO 4": [
+      "Divis\xE3o Sul OZ4",
+      "Divis\xE3o Extremo Leste OZ4",
+      "Divis\xE3o Oeste OZ4",
+      "Divis\xE3o Norte OZ4"
+    ],
+    "REGIONAL OSASCO 5": [
+      "Divis\xE3o Centro OZ 5",
+      "Divis\xE3o Leste OZ 5",
+      "Divis\xE3o Osasco 5 Extremo Oeste"
+    ],
+    "REGIONAL OURINHOS": [
+      "Divis\xE3o Ribeir\xE3o Claro",
+      "Divis\xE3o Ourinhos",
+      "Divis\xE3o Santa Cruz do Rio Pard",
+      "Divis\xE3o Piraju",
+      "Divis\xE3o Salto Grande"
+    ],
+    "REGIONAL PERUS": [
+      "Divis\xE3o Perus",
+      "Divis\xE3o Cajamar Sul",
+      "Divis\xE3o Morro Doce",
+      "Divis\xE3o Cajamar Norte",
+      "Divis\xE3o Jardim Cana\xE3"
+    ],
+    "REGIONAL PIRACICABA": [
+      "Divis\xE3o Piracicaba",
+      "Divis\xE3o S\xE3o Pedro",
+      "Divis\xE3o Rio das Pedras",
+      "Divis\xE3o Saltinho",
+      "Divis\xE3o Charqueada",
+      "Divis\xE3o Ipe\xFAna",
+      "Divis\xE3o \xC1guas de S\xE3o Pedro",
+      "Divis\xE3o Piracicaba Norte",
+      "Divis\xE3o Piracicaba Sul",
+      "Divis\xE3o Piracicaba Leste"
+    ],
+    "REGIONAL PIRASSUNUNGA": [
+      "Divis\xE3o Pirassununga",
+      "Divis\xE3o Porto Ferreira",
+      "Divis\xE3o S\xE3o Carlos Sul",
+      "Divis\xE3o Santa Cruz das Palmeir",
+      "Divis\xE3o Tamba\xFA",
+      "Divis\xE3o Descalvado",
+      "Divis\xE3o Santa Rita do Passa Qu",
+      "Divis\xE3o S\xE3o Carlos Norte"
+    ],
+    "REGIONAL PRESIDENTE PRUDENTE": [
+      "Divis\xE3o Presidente Prudente",
+      "Divis\xE3o Presidente Venceslau",
+      "Divis\xE3o Tupi Paulista",
+      "Divis\xE3o Dracena",
+      "Divis\xE3o Pirapozinho",
+      "Divis\xE3o Osvaldo Cruz",
+      "Divis\xE3o Junqueir\xF3polis",
+      "Divis\xE3o Martin\xF3polis"
+    ],
+    "REGIONAL RIBEIR\xC3O PRETO": [
+      "Divis\xE3o Ribeirao Preto Centro",
+      "Divis\xE3o Batatais",
+      "Divis\xE3o Sert\xE3ozinho",
+      "Divis\xE3o Cravinhos",
+      "Divis\xE3o Ribeir\xE3o Preto Leste",
+      "Divis\xE3o Ribeir\xE3o Preto Sul",
+      "Divis\xE3o Ribeir\xE3o Preto Norte",
+      "Divis\xE3o Ribeir\xE3o Preto Oeste",
+      "Divis\xE3o Ribeir\xE3o Preto Bonfim"
+    ],
+    "REGIONAL SALTO DE PIRAPORA": [
+      "Divis\xE3o S\xE3o Miguel Arcanjo",
+      "Divis\xE3o Ara\xE7oiaba da Serra",
+      "Divis\xE3o Piedade",
+      "Divis\xE3o Salto de Pirapora",
+      "Divis\xE3o Pilar do Sul",
+      "Divis\xE3o Tapira\xED"
+    ],
+    "REGIONAL SANTANA DE PARNAIBA": [
+      "Divis\xE3o Ara\xE7ariguama",
+      "Divis\xE3o Santana de Parna\xEDba Le",
+      "Divis\xE3o Aldeia da Serra Sul",
+      "Divis\xE3o Santana de Parna\xEDba Ce",
+      "Divis\xE3o Pirapora do Bom Jesus",
+      "Divis\xE3o Tambor\xE9",
+      "Divis\xE3o Aldeia da Serra Norte",
+      "Divis\xE3o Colinas da Anhanguera",
+      "Divis\xE3o Fazendinha"
+    ],
+    "REGIONAL S\xC3O JO\xC3O DA BOA VISTA": [
+      "Divis\xE3o Agua\xED",
+      "Divis\xE3o S\xE3o Joao da Boa Vista",
+      "Divis\xE3o Vargem Grande do Sul",
+      "Divis\xE3o \xC1guas da Prata",
+      "Divis\xE3o Po\xE7os de Caldas"
+    ],
+    "REGIONAL S\xC3O JOS\xC9 DO RIO PRETO": [
+      "Divis\xE3o Fronteira",
+      "Divis\xE3o S\xE3o Jos\xE9 do Rio Preto",
+      "Divis\xE3o Olimpia",
+      "Divis\xE3o Mirassol",
+      "Divis\xE3o Jos\xE9 Bonif\xE1cio",
+      "Divis\xE3o Barretos",
+      "Divis\xE3o Catanduva",
+      "Divis\xE3o Guaraci",
+      "Divis\xE3o Monte Apraz\xEDvel"
+    ],
+    "REGIONAL SOROCABA": [
+      "Divis\xE3o Sorocaba Oeste",
+      "Divis\xE3o Votorantim",
+      "Divis\xE3o Sorocaba Norte",
+      "Divis\xE3o Sorocaba Centro",
+      "Divis\xE3o Sorocaba Sul",
+      "Divis\xE3o Sorocaba Aparecidinha",
+      "Divis\xE3o Sorocaba \xC9den",
+      "Divis\xE3o Votorantim Leste",
+      "Divis\xE3o Brigadeiro Tobias",
+      "Divis\xE3o Sorocaba Leste"
+    ],
+    "REGIONAL SP1": [
+      "Divis\xE3o Extremo Norte - SP1",
+      "Divis\xE3o Leste - SP1",
+      "Divis\xE3o Extremo Sul - SP1",
+      "Divis\xE3o Extremo Leste - SP1",
+      "Divis\xE3o Centro - SP1"
+    ],
+    "REGIONAL SP10": [
+      "Divis\xE3o Norte - SP10",
+      "Divis\xE3o Extremo Norte - SP10",
+      "Divis\xE3o Extremo Sul - SP10",
+      "Divis\xE3o Leste - SP10",
+      "Divis\xE3o Oeste - SP10",
+      "Divis\xE3o Extremo Oeste - SP10",
+      "Divis\xE3o Extremo Leste - SP10",
+      "Divis\xE3o Centro - SP10",
+      "Divis\xE3o Sul - SP10"
+    ],
+    "REGIONAL SP11": [
+      "Divis\xE3o Sul - SP11",
+      "Divis\xE3o Leste - SP11",
+      "Divis\xE3o Extremo Sul - SP11",
+      "Divis\xE3o Extremo Leste - SP11",
+      "Divis\xE3o Norte - SP11",
+      "Divis\xE3o Oeste - SP11",
+      "Divis\xE3o Centro -SP11"
+    ],
+    "REGIONAL SP12": [
+      "Divis\xE3o Extremo Leste - SP12",
+      "Divis\xE3o Centro - SP12",
+      "Divis\xE3o Extremo Sul - SP12",
+      "Divis\xE3o Extremo Norte - SP12"
+    ],
+    "REGIONAL SP13": [
+      "Divis\xE3o Oeste - SP13",
+      "Divis\xE3o Leste - SP13",
+      "Divis\xE3o Centro - SP13",
+      "Divis\xE3o Norte - SP13",
+      "Divis\xE3o Extremo Leste - SP13"
+    ],
+    "REGIONAL SP14": [
+      "Divis\xE3o Oeste - SP14",
+      "Divis\xE3o Sul - SP14",
+      "Divis\xE3o Norte - Sp14",
+      "Divis\xE3o Extremo Oeste - SP14",
+      "Divis\xE3o Extremo Sul - SP14",
+      "Divis\xE3o Leste - SP14"
+    ],
+    "REGIONAL SP15": [
+      "Divis\xE3o Leste - SP15",
+      "Divis\xE3o Norte - SP15",
+      "Divis\xE3o Oeste - SP15",
+      "Divis\xE3o Sul - SP15",
+      "Divis\xE3o Extremo Norte - SP15"
+    ],
+    "REGIONAL SP16": [
+      "Divis\xE3o S\xE3o Lu\xEDs - SP16",
+      "Divis\xE3o Jardim Angela - SP16",
+      "Divis\xE3o Guarapiranga - SP16",
+      "Divis\xE3o Vila das Belezas - SP1"
+    ],
+    "REGIONAL SP17": [
+      "Divis\xE3o Sul - SP17",
+      "Divis\xE3o Oeste - SP17",
+      "Divis\xE3o Centro - SP17",
+      "Divis\xE3o Norte - SP17"
+    ],
+    "REGIONAL SP18": [
+      "Divis\xE3o Norte - SP18",
+      "Divis\xE3o Sul - SP18",
+      "Divis\xE3o Leste - SP18",
+      "Divis\xE3o Oeste - SP18",
+      "Divis\xE3o Extremo Norte - SP18",
+      "Divis\xE3o Extremo Sul - SP18",
+      "Divis\xE3o Extremo Leste - SP18",
+      "Divis\xE3o Extremo Oeste - SP18"
+    ],
+    "REGIONAL SP19": [
+      "Divis\xE3o Norte - SP19",
+      "Divis\xE3o Sul - SP19",
+      "Divis\xE3o Leste - SP19",
+      "Divis\xE3o Oeste - SP19",
+      "Divis\xE3o Centro Velho - SP19"
+    ],
+    "REGIONAL SP2": [
+      "Divis\xE3o Leste - SP2",
+      "Divis\xE3o Sul - SP2",
+      "Divis\xE3o Oeste - SP2",
+      "Divis\xE3o Norte - SP2",
+      "Divis\xE3o Centro - SP2"
+    ],
+    "REGIONAL SP20": [
+      "Divis\xE3o Norte - SP20",
+      "Divis\xE3o Sul - SP20",
+      "Divis\xE3o Leste - SP20",
+      "Divis\xE3o Oeste - SP20"
+    ],
+    "REGIONAL SP21": [
+      "Divis\xE3o Norte - SP21",
+      "Divis\xE3o Sul - SP21",
+      "Divis\xE3o Leste SP21",
+      "Divis\xE3o Oeste - SP21",
+      "Divis\xE3o Extremo Norte - SP21"
+    ],
+    "REGIONAL SP22": [
+      "Divis\xE3o Norte - SP22",
+      "Divis\xE3o Sul - SP22",
+      "Divis\xE3o Leste - SP22"
+    ],
+    "REGIONAL SP23": [
+      "Divis\xE3o Sul - SP23",
+      "Divis\xE3o Norte - SP23"
+    ],
+    "REGIONAL SP25": [
+      "Divis\xE3o Leste - SP25",
+      "Divis\xE3o Norte - SP25",
+      "Divis\xE3o Sul - SP25",
+      "Divis\xE3o Oeste - SP25"
+    ],
+    "REGIONAL SP26": [
+      "Divis\xE3o Sul - SP26",
+      "Divis\xE3o Norte - SP26"
+    ],
+    "REGIONAL SP3": [
+      "Divis\xE3o Oeste - SP3",
+      "Divis\xE3o Extremo Sul - SP3",
+      "Divis\xE3o Sul - SP3",
+      "Divis\xE3o Norte - SP3",
+      "Divis\xE3o Leste - SP3",
+      "Divis\xE3o Extremo Oeste - SP3",
+      "Divis\xE3o Extremo Leste - SP3",
+      "Divis\xE3o Extremo Norte - SP3",
+      "Divis\xE3o Centro - SP3"
+    ],
+    "REGIONAL SP4": [
+      "Divis\xE3o Oeste SP4",
+      "Divis\xE3o Extremo Oeste SP4",
+      "Divis\xE3o Extremo Norte SP4",
+      "Divis\xE3o Norte SP4",
+      "Divis\xE3o Leste SP4",
+      "Divis\xE3o Sul SP4"
+    ],
+    "REGIONAL SP5": [
+      "Divis\xE3o Norte - SP5",
+      "Divis\xE3o Sul - SP5",
+      "Divis\xE3o Oeste - SP5",
+      "Divis\xE3o Extremo Sul - SP5",
+      "Divis\xE3o Extremo Norte - SP5",
+      "Divis\xE3o Extremo Oeste 1 - SP5",
+      "Divis\xE3o Extremo Oeste 2 - SP5",
+      "Divis\xE3o Extremo Leste 2 - SP5",
+      "Divis\xE3o Extremo Leste - SP5"
+    ],
+    "REGIONAL SP6": [
+      "Divis\xE3o Leste - SP6",
+      "Divis\xE3o Sul - SP6",
+      "Divis\xE3o Norte - SP6",
+      "Divis\xE3o Oeste - SP6",
+      "Divis\xE3o Extremo Norte - SP6",
+      "Divis\xE3o Extremo Leste - SP6"
+    ],
+    "REGIONAL SP7": [
+      "Divis\xE3o Parelheiros - SP7",
+      "Divis\xE3o Interlagos - SP7",
+      "Divis\xE3o Graja\xFA - SP7",
+      "Divis\xE3o Embu-Gua\xE7u - SP7",
+      "Divis\xE3o Rio Bonito - SP7",
+      "Divis\xE3o Pedreira - SP7",
+      "Divis\xE3o Santo Amaro - SP7",
+      "Divis\xE3o Cupec\xEA - SP7"
+    ],
+    "REGIONAL SP8": [
+      "Divis\xE3o Norte - SP8",
+      "Divis\xE3o Sul - SP8",
+      "Divis\xE3o Oeste - SP8",
+      "Divis\xE3o Leste - SP8",
+      "Divis\xE3o Centro - SP8",
+      "Divis\xE3o Extremo Oeste - SP8",
+      "Divis\xE3o Extremo Sul - SP8",
+      "Divis\xE3o Extremo Norte - SP8",
+      "Divis\xE3o Extremo Leste - SP8"
+    ],
+    "REGIONAL SP9": [
+      "Divis\xE3o Norte - SP9",
+      "Divis\xE3o Extremo Leste - SP9",
+      "Divis\xE3o Centro - SP9",
+      "Divis\xE3o Extremo Norte - SP9",
+      "Divis\xE3o Sul - SP9",
+      "Divis\xE3o Oeste - SP9",
+      "Divis\xE3o Leste - SP9",
+      "Divis\xE3o Extremo Oeste - SP9",
+      "Divis\xE3o Extremo Sul - SP9"
+    ],
+    "REGIONAL SUMAR\xC9": [
+      "Divis\xE3o Hortolandia",
+      "Divis\xE3o Paul\xEDnia",
+      "Divis\xE3o Sumar\xE9",
+      "Divis\xE3o Nova Odessa",
+      "Divis\xE3o Monte Mor",
+      "Divis\xE3o Sumar\xE9 II",
+      "Divis\xE3o Hortol\xE2ndia II"
+    ],
+    "REGIONAL TABO\xC3O DA SERRA": [
+      "Divis\xE3o Tabo\xE3o da Serra Leste",
+      "Divis\xE3o Valo Velho",
+      "Divis\xE3o Tabo\xE3o da Serra Centro",
+      "Divis\xE3o Tabo\xE3o da Serra Oeste"
+    ],
+    "REGIONAL VALE DO PARAIBA I": [
+      "Divis\xE3o S\xE3o Jos\xE9 dos Campos Su",
+      "Divis\xE3o S\xE3o Jos\xE9 dos Campos No",
+      "Divis\xE3o Ca\xE7apava",
+      "Divis\xE3o S\xE3o Jos\xE9 dos Campos Le",
+      "Divis\xE3o S\xE3o Jos\xE9 dos Campos Oe",
+      "Divis\xE3o S\xE3o Jos\xE9 dos Campos Ce",
+      "Divis\xE3o S\xE3o Jos\xE9 dos Campos Ex",
+      "Divis\xE3o Paraibuna",
+      "Divis\xE3o Ca\xE7apava II"
+    ],
+    "REGIONAL VALE DO PARA\xCDBA II": [
+      "Divis\xE3o Campos do Jord\xE3o",
+      "Divis\xE3o Taubat\xE9",
+      "Divis\xE3o Pindamonhangaba",
+      "Divis\xE3o Trememb\xE9",
+      "Divis\xE3o Santo Ant\xF4nio do Pinha",
+      "Divis\xE3o Guaratinguet\xE1",
+      "Divis\xE3o Reden\xE7\xE3o da Serra",
+      "Divis\xE3o Moreira Cesar",
+      "Divis\xE3o Pindamonhangaba II",
+      "Divis\xE3o Pindamonhangaba III",
+      "Divis\xE3o Taubat\xE9 2"
+    ],
+    "REGIONAL VALE DO PARA\xCDBA III": [
+      "Divis\xE3o Jacare\xED Sul",
+      "Divis\xE3o Jacare\xED Norte",
+      "Divis\xE3o Jacare\xED Leste",
+      "Divis\xE3o Jacare\xED Oeste",
+      "Divis\xE3o Jacare\xED Centro",
+      "Divis\xE3o Santa Branca",
+      "Divis\xE3o Jacare\xED Extremo Sul"
+    ],
+    "REGIONAL VALE DO RIBEIRA": [
+      "Divis\xE3o Iguape",
+      "Divis\xE3o Apia\xED",
+      "Divis\xE3o Registro",
+      "Divis\xE3o Eldorado",
+      "Divis\xE3o Sete Barras",
+      "Divis\xE3o Cajati",
+      "Divis\xE3o Canan\xE9ia"
+    ],
+    "REGIONAL VARZEA PAULISTA": [
+      "Divis\xE3o V\xE1rzea Paulista Sul",
+      "Divis\xE3o Jarinu",
+      "Divis\xE3o Campo Limpo Paulista N",
+      "Divis\xE3o Varzea Paulista Centro",
+      "Divis\xE3o Campo Limpo Paulista S",
+      "Divis\xE3o V\xE1rzea Paulista Norte"
+    ],
+    "REGIONAL VINHEDO": [
+      "Divis\xE3o Valinhos",
+      "Divis\xE3o Itupeva",
+      "Divis\xE3o Cabreuva",
+      "Divis\xE3o Louveira Norte",
+      "Divis\xE3o Vinhedo",
+      "Divis\xE3o Louveira Sul"
+    ],
+    "REGIONAL VOTUPORANGA": [
+      "Divis\xE3o Fernand\xF3polis",
+      "Divis\xE3o Votuporanga",
+      "Divis\xE3o Santa F\xE9 do Sul",
+      "Divis\xE3o Tr\xEAs Fronteiras",
+      "Divis\xE3o Iturama"
+    ],
+    "REGIONAL TOCANTINS": [
+      "Divis\xE3o Palmas",
+      "Divis\xE3o Aragua\xEDna",
+      "Divis\xE3o Gurupi Sul",
+      "Divis\xE3o Paraiso",
+      "Divis\xE3o Gurupi Norte"
     ]
   };
   var REGIONAIS = Object.keys(REGIONAIS_DIVISOES);
@@ -87667,8 +89452,39 @@ This typically indicates that your device does not have a healthy Internet conne
   function normalizeStr(str) {
     return (str || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "_").replace(/_+/g, "_");
   }
-  function makeDocId(nome, nomeColete, regional, divisao) {
-    const rawKey = `${normalizeStr(nome)}_${normalizeStr(nomeColete)}_${normalizeStr(regional)}_${normalizeStr(divisao)}`;
+  function isParticipantConvidado(data, docId = "") {
+    if (!data) return false;
+    const tipo = String(data.tipoParticipante || data.tipo || "").trim().toLowerCase();
+    if (tipo === "convidado" || tipo === "convidados" || tipo.includes("convid")) return true;
+    const grau = String(data.grau || "").trim().toLowerCase();
+    if (grau === "convidado" || grau === "convidados" || grau.includes("convid")) return true;
+    const regional = String(data.regional || "").trim().toLowerCase();
+    if (regional === "convidado" || regional === "convidados" || regional.includes("convid")) return true;
+    const divisao = String(data.divisao || "").trim().toLowerCase();
+    if (divisao === "convidado" || divisao === "convidados" || divisao.includes("convid")) return true;
+    const colete = String(data.nomeColete || "").trim().toLowerCase();
+    if (colete === "convidado" || colete === "convidados" || colete.includes("convid")) return true;
+    const mc = String(data.motoclube || "").trim().toLowerCase();
+    if (mc !== "" && mc !== "insanos mc" && mc !== "insanos" && mc !== "insanos m.c." && mc !== "insanos motoclube") return true;
+    const id = String(docId || data.id || "").toLowerCase();
+    if (id.startsWith("p_conv_") || id.startsWith("conv_") || id.includes("convid") || id.includes("_conv_")) return true;
+    const key = String(data.lookupKey || "").toLowerCase();
+    if (key.startsWith("conv_") || key.includes("convid") || key.includes("_conv_")) return true;
+    if (!data.nomeColete && !data.regional && (!data.grau || data.grau === "Convidado") && data.motoclube) return true;
+    return false;
+  }
+  function makeDocId(param1, nomeColete, regional, divisao) {
+    let rawKey = "";
+    if (typeof param1 === "object" && param1 !== null) {
+      const { tipoParticipante, nome, nomeColete: nc, regional: reg, divisao: div, motoclube } = param1;
+      if (isParticipantConvidado(param1)) {
+        rawKey = `conv_${normalizeStr(nome)}_${normalizeStr(motoclube)}`;
+      } else {
+        rawKey = `${normalizeStr(nome)}_${normalizeStr(nc)}_${normalizeStr(reg)}_${normalizeStr(div)}`;
+      }
+    } else {
+      rawKey = `${normalizeStr(param1)}_${normalizeStr(nomeColete)}_${normalizeStr(regional)}_${normalizeStr(divisao)}`;
+    }
     let hash = 0;
     for (let i5 = 0; i5 < rawKey.length; i5++) {
       hash = (hash << 5) - hash + rawKey.charCodeAt(i5);
@@ -87678,31 +89494,46 @@ This typically indicates that your device does not have a healthy Internet conne
     const prefix = rawKey.slice(0, 70).replace(/^_|_$/g, "");
     return `p_${prefix}_${hexHash}`.slice(0, 110);
   }
-  var GRAUS_SEM_DIVISAO = ["Regional V", "Grau IV", "Brasil III"];
-  function isDivisaoObrigatoria(grau) {
-    if (!grau) return true;
-    return !GRAUS_SEM_DIVISAO.includes(grau.trim());
+  function getGrauCategory(grau) {
+    const g2 = (grau || "").trim();
+    if (g2 === "Grau I" || g2 === "I") return "I";
+    if (g2 === "Grau II" || g2 === "II") return "II";
+    if (g2 === "Brasil III" || g2 === "Grau III" || g2 === "III") return "III";
+    if (g2 === "Grau IV" || g2 === "IV") return "IV";
+    if (g2 === "Regional V" || g2 === "Grau V" || g2 === "V") return "V";
+    return "OUTRO";
   }
-  async function confirmarPresenca({ nome, nomeColete, regional, divisao, grau }) {
-    const grauTrim = (grau || "").trim();
-    const precisaDivisao = isDivisaoObrigatoria(grauTrim);
-    const divisaoFinal = (divisao || "").trim();
-    if (!nome || !nomeColete || !regional || !grauTrim || precisaDivisao && !divisaoFinal) {
-      if (precisaDivisao && !divisaoFinal) {
-        return { success: false, error: "O campo Divis\xE3o \xE9 obrigat\xF3rio para este grau." };
-      }
-      return { success: false, error: "Todos os campos obrigat\xF3rios devem ser preenchidos." };
-    }
-    const docId = makeDocId(nome, nomeColete, regional, divisaoFinal);
-    const docRef = doc(db, "bonde_1000", docId);
-    try {
-      const existingSnap = await getDoc(docRef);
-      if (existingSnap.exists()) {
-        return { success: false, error: "Esta presen\xE7a j\xE1 foi registrada." };
-      }
-    } catch (err2) {
-      console.warn("Verifica\xE7\xE3o de duplicidade:", err2);
-    }
+  function isDivisaoObrigatoria(grau) {
+    return getGrauCategory(grau) === "OUTRO";
+  }
+  function isRegionalObrigatoria(grau) {
+    const cat = getGrauCategory(grau);
+    return cat === "V" || cat === "OUTRO";
+  }
+  function isRegionalAplicavel(grau) {
+    const cat = getGrauCategory(grau);
+    return cat === "IV" || cat === "V" || cat === "OUTRO";
+  }
+  function isDivisaoAplicavel(grau) {
+    const cat = getGrauCategory(grau);
+    return cat === "IV" || cat === "OUTRO";
+  }
+  async function confirmarPresenca({
+    tipoParticipante = "Membro Insanos",
+    nome,
+    nomeColete = "",
+    regional = "",
+    divisao = "",
+    grau = "",
+    cargoFuncao = "",
+    comandoInternacional = "",
+    comandoPasta = "",
+    motoclube = ""
+  }) {
+    const isConvidado = isParticipantConvidado({ tipoParticipante, motoclube, nomeColete, regional, grau });
+    const nomeTrim = (nome || "").trim();
+    let docId = "";
+    let payload = {};
     const now = /* @__PURE__ */ new Date();
     const dataHoraConfirmacao = now.toLocaleString("pt-BR", {
       day: "2-digit",
@@ -87713,22 +89544,108 @@ This typically indicates that your device does not have a healthy Internet conne
       second: "2-digit",
       timeZone: "America/Sao_Paulo"
     });
-    const payload = {
-      nome: nome.trim(),
-      nomeColete: nomeColete.trim(),
-      regional: regional.trim(),
-      divisao: divisaoFinal,
-      grau: grauTrim,
-      evento: "1\xBA Bonde das 1000 Motos",
-      dataEvento: "10/10/2026",
-      horarioSaida: "10:00",
-      localConcentracao: "PE Avenida Deputado An\xEDbal Khury",
-      dataHoraConfirmacao,
-      lookupKey: `${normalizeStr(nome)}_${normalizeStr(nomeColete)}_${normalizeStr(regional)}_${normalizeStr(divisaoFinal)}`
-    };
+    if (isConvidado) {
+      const motoclubeTrim = (motoclube || "").trim();
+      if (!nomeTrim || !motoclubeTrim) {
+        return { success: false, error: "Por favor, preencha o Nome e o Motoclube." };
+      }
+      docId = makeDocId({ tipoParticipante: "Convidado", nome: nomeTrim, motoclube: motoclubeTrim });
+      payload = {
+        tipoParticipante: "Convidado",
+        nome: nomeTrim,
+        nomeColete: "",
+        motoclube: motoclubeTrim,
+        regional: "",
+        divisao: "",
+        grau: "Convidado",
+        cargoFuncao: "",
+        comandoInternacional: "",
+        comandoPasta: "",
+        evento: "1\xBA Bonde das 1000 Motos",
+        dataEvento: "10/10/2026",
+        horarioSaida: "10:00",
+        localConcentracao: "PE Avenida Deputado An\xEDbal Khury",
+        dataHoraConfirmacao,
+        lookupKey: `conv_${normalizeStr(nomeTrim)}_${normalizeStr(motoclubeTrim)}`
+      };
+    } else {
+      const nomeColeteTrim = (nomeColete || "").trim();
+      const grauTrim = (grau || "").trim();
+      const regionalTrim = (regional || "").trim();
+      const divisaoTrim = (divisao || "").trim();
+      const cargoFuncaoTrim = (cargoFuncao || "").trim();
+      const comandoInternacionalTrim = (comandoInternacional || "").trim();
+      const comandoPastaTrim = (comandoPasta || "").trim();
+      if (!nomeTrim || !nomeColeteTrim || !grauTrim) {
+        return { success: false, error: "Por favor, preencha todos os campos obrigat\xF3rios." };
+      }
+      const cat = getGrauCategory(grauTrim);
+      if (cat === "I" && !cargoFuncaoTrim) {
+        return { success: false, error: "O campo Cargo / Fun\xE7\xE3o \xE9 obrigat\xF3rio para o Grau I." };
+      }
+      if (cat === "II" && !comandoInternacionalTrim) {
+        return { success: false, error: "O campo Comando Internacional / Continental \xE9 obrigat\xF3rio para o Grau II." };
+      }
+      if (cat === "III" && !comandoPastaTrim) {
+        return { success: false, error: "O campo Comando / Pasta \xE9 obrigat\xF3rio para o Grau III." };
+      }
+      if ((cat === "V" || cat === "OUTRO") && !regionalTrim) {
+        return { success: false, error: "O campo Regional \xE9 obrigat\xF3rio." };
+      }
+      if (cat === "OUTRO" && !divisaoTrim) {
+        return { success: false, error: "O campo Divis\xE3o \xE9 obrigat\xF3rio para este grau." };
+      }
+      const finalRegional = cat === "I" || cat === "II" || cat === "III" ? "" : regionalTrim;
+      const finalDivisao = cat === "I" || cat === "II" || cat === "III" || cat === "V" ? "" : divisaoTrim;
+      docId = makeDocId({
+        tipoParticipante: "Membro Insanos",
+        nome: nomeTrim,
+        nomeColete: nomeColeteTrim,
+        regional: finalRegional,
+        divisao: finalDivisao
+      });
+      payload = {
+        tipoParticipante: "Membro Insanos",
+        nome: nomeTrim,
+        nomeColete: nomeColeteTrim,
+        regional: finalRegional,
+        divisao: finalDivisao,
+        grau: grauTrim,
+        cargoFuncao: cat === "I" ? cargoFuncaoTrim : "",
+        comandoInternacional: cat === "II" ? comandoInternacionalTrim : "",
+        comandoPasta: cat === "III" ? comandoPastaTrim : "",
+        evento: "1\xBA Bonde das 1000 Motos",
+        dataEvento: "10/10/2026",
+        horarioSaida: "10:00",
+        localConcentracao: "PE Avenida Deputado An\xEDbal Khury",
+        dataHoraConfirmacao,
+        lookupKey: `${normalizeStr(nomeTrim)}_${normalizeStr(nomeColeteTrim)}_${normalizeStr(finalRegional)}_${normalizeStr(finalDivisao)}`
+      };
+    }
+    const docRef = doc(db, "bonde_1000", docId);
+    try {
+      const existingSnap = await getDoc(docRef);
+      if (existingSnap.exists()) {
+        return { success: false, error: "Esta presen\xE7a j\xE1 foi registrada." };
+      }
+    } catch (err2) {
+      console.warn("Verifica\xE7\xE3o de duplicidade:", err2);
+    }
     try {
       await setDoc(docRef, payload);
-      return { success: true, data: payload, id: docId };
+      const returnData = {
+        ...payload,
+        tipoParticipante: isConvidado ? "Convidado" : "Membro Insanos",
+        motoclube: isConvidado ? payload.motoclube || "" : "Insanos MC",
+        nomeColete: isConvidado ? "" : payload.nomeColete,
+        regional: payload.regional,
+        divisao: payload.divisao,
+        grau: isConvidado ? "Convidado" : payload.grau,
+        cargoFuncao: payload.cargoFuncao,
+        comandoInternacional: payload.comandoInternacional,
+        comandoPasta: payload.comandoPasta
+      };
+      return { success: true, data: returnData, id: docId };
     } catch (err2) {
       handleFirestoreError(err2, OperationType2.CREATE, `bonde_1000/${docId}`);
     }
@@ -87739,7 +89656,23 @@ This typically indicates that your device does not have a healthy Internet conne
       const snapshot = await getDocs(colRef);
       const list = [];
       snapshot.forEach((docSnap) => {
-        list.push({ id: docSnap.id, ...docSnap.data() });
+        const data = docSnap.data();
+        const isConv = isParticipantConvidado(data, docSnap.id);
+        list.push({
+          id: docSnap.id,
+          ...data,
+          tipoParticipante: isConv ? "Convidado" : data.tipoParticipante || "Membro Insanos",
+          motoclube: isConv ? data.motoclube || data.nomeColete || "Sem Clube" : data.motoclube || "Insanos MC",
+          nome: data.nome || "",
+          nomeColete: isConv ? "" : data.nomeColete || "",
+          regional: isConv ? "" : data.regional || "",
+          divisao: isConv ? "" : data.divisao || "",
+          grau: isConv ? "Convidado" : data.grau || "",
+          cargoFuncao: isConv ? "" : data.cargoFuncao || "",
+          comandoInternacional: isConv ? "" : data.comandoInternacional || "",
+          comandoPasta: isConv ? "" : data.comandoPasta || "",
+          dataHoraConfirmacao: data.dataHoraConfirmacao || ""
+        });
       });
       list.sort((a3, b3) => (a3.nome || "").localeCompare(b3.nome || "", "pt-BR"));
       return list;
@@ -87757,19 +89690,28 @@ This typically indicates that your device does not have a healthy Internet conne
     }
   }
   function exportarExcel(participantes, nomeArquivo = "bonde_1000_participantes.xlsx") {
-    const dados = participantes.map((p4, idx) => ({
-      "N\xBA": idx + 1,
-      "Nome": p4.nome || "",
-      "Nome de Colete": p4.nomeColete || "",
-      "Regional": p4.regional || "",
-      "Divis\xE3o": p4.divisao || "",
-      "Grau": p4.grau || "",
-      "Data/Hora da confirma\xE7\xE3o": p4.dataHoraConfirmacao || ""
-    }));
+    const dados = participantes.map((p4, idx) => {
+      const isConv = isParticipantConvidado(p4, p4.id);
+      const cargoExtra = p4.cargoFuncao || p4.comandoInternacional || p4.comandoPasta || "";
+      const grauFormatado = isConv ? "Convidado" : p4.grau ? cargoExtra ? `${p4.grau} (${cargoExtra})` : p4.grau : "-";
+      return {
+        "N\xBA": idx + 1,
+        "Tipo": isConv ? "Convidado" : "Membro Insanos",
+        "Nome": p4.nome || "",
+        "Nome de Colete": isConv ? "-" : p4.nomeColete || "-",
+        "Motoclube": isConv ? p4.motoclube || "Sem Clube" : "Insanos MC",
+        "Regional": isConv ? "Convidado" : p4.regional || "-",
+        "Divis\xE3o": isConv ? "Convidado" : p4.divisao || "-",
+        "Grau": grauFormatado,
+        "Data/Hora da confirma\xE7\xE3o": p4.dataHoraConfirmacao || ""
+      };
+    });
     const worksheet = utils.json_to_sheet(dados);
     worksheet["!cols"] = [
       { wch: 6 },
+      { wch: 18 },
       { wch: 30 },
+      { wch: 20 },
       { wch: 25 },
       { wch: 30 },
       { wch: 30 },
@@ -87782,36 +89724,44 @@ This typically indicates that your device does not have a healthy Internet conne
   }
   function exportarPDF(participantes, nomeArquivo = "bonde_1000_participantes.pdf") {
     const pdfDoc = new E({
-      orientation: "portrait",
+      orientation: "landscape",
       unit: "mm",
       format: "a4"
     });
     pdfDoc.setFont("helvetica", "bold");
     pdfDoc.setFontSize(18);
     pdfDoc.setTextColor(32, 30, 29);
-    pdfDoc.text("1\xBA BONDE DAS 1000 MOTOS", 14, 18);
+    pdfDoc.text("1\xBA BONDE DAS 1000 MOTOS", 14, 16);
     pdfDoc.setFont("helvetica", "normal");
-    pdfDoc.setFontSize(12);
+    pdfDoc.setFontSize(11);
     pdfDoc.setTextColor(96, 93, 93);
-    pdfDoc.text("Lista de participantes confirmados", 14, 25);
+    pdfDoc.text("Lista de participantes confirmados (Membros Insanos MC e Convidados)", 14, 22);
     docDate(pdfDoc);
-    const tableData = participantes.map((p4, idx) => [
-      idx + 1,
-      p4.nome || "",
-      p4.nomeColete || "",
-      p4.regional || "",
-      p4.divisao || "",
-      p4.grau || "",
-      p4.dataHoraConfirmacao || ""
-    ]);
+    const tableData = participantes.map((p4, idx) => {
+      const isConv = isParticipantConvidado(p4, p4.id);
+      const coleteOuMc = isConv ? p4.motoclube ? `MC: ${p4.motoclube}` : "Sem Clube" : p4.nomeColete || "-";
+      const cargoExtra = p4.cargoFuncao || p4.comandoInternacional || p4.comandoPasta || "";
+      const grauFormatado = isConv ? "Convidado" : p4.grau ? cargoExtra ? `${p4.grau}
+(${cargoExtra})` : p4.grau : "-";
+      return [
+        idx + 1,
+        isConv ? "Convidado" : "Membro Insanos",
+        p4.nome || "",
+        coleteOuMc,
+        isConv ? "Convidado" : p4.regional || "-",
+        isConv ? "Convidado" : p4.divisao || "-",
+        grauFormatado,
+        p4.dataHoraConfirmacao || ""
+      ];
+    });
     pdfDoc.autoTable({
-      startY: 36,
-      head: [["N\xBA", "Nome", "Nome de Colete", "Regional", "Divis\xE3o", "Grau", "Data/Hora"]],
+      startY: 32,
+      head: [["N\xBA", "Tipo", "Nome", "Colete / Motoclube", "Regional", "Divis\xE3o", "Grau", "Data/Hora"]],
       body: tableData,
       styles: {
         font: "helvetica",
         fontSize: 8,
-        cellPadding: 2.5,
+        cellPadding: 2,
         textColor: [32, 30, 29],
         overflow: "linebreak"
       },
@@ -87825,20 +89775,21 @@ This typically indicates that your device does not have a healthy Internet conne
       },
       columnStyles: {
         0: { cellWidth: 10, halign: "center" },
-        1: { cellWidth: 35 },
-        2: { cellWidth: 28 },
-        3: { cellWidth: 35 },
-        4: { cellWidth: 35 },
-        5: { cellWidth: 22 },
-        6: { cellWidth: 25 }
+        1: { cellWidth: 30 },
+        2: { cellWidth: 45 },
+        3: { cellWidth: 40 },
+        4: { cellWidth: 45 },
+        5: { cellWidth: 45 },
+        6: { cellWidth: 25 },
+        7: { cellWidth: 30 }
       },
       margin: { left: 10, right: 10 }
     });
-    const finalY = pdfDoc.lastAutoTable.finalY || 40;
+    const finalY = pdfDoc.lastAutoTable.finalY || 35;
     pdfDoc.setFont("helvetica", "bold");
-    pdfDoc.setFontSize(12);
+    pdfDoc.setFontSize(11);
     pdfDoc.setTextColor(0, 103, 134);
-    pdfDoc.text(`TOTAL DE PARTICIPANTES: ${participantes.length}`, 14, finalY + 12);
+    pdfDoc.text(`TOTAL DE PARTICIPANTES: ${participantes.length}`, 14, finalY + 10);
     pdfDoc.save(nomeArquivo);
   }
   function docDate(doc2) {
