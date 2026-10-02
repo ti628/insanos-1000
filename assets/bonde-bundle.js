@@ -87376,7 +87376,7 @@ This typically indicates that your device does not have a healthy Internet conne
   var GRAUS = [
     "Camiseta / PP X",
     "Meio escudo IX",
-    "Full XIII",
+    "Full VIII",
     "Cargo XI",
     "Regional V",
     "Grau IV",

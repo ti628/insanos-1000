@@ -1,7 +1,7 @@
 export const GRAUS = [
   'Camiseta / PP X',
   'Meio escudo IX',
-  'Full XIII',
+  'Full VIII',
   'Cargo VI',
   'Regional V',
   'Grau IV',

@@ -2,7 +2,7 @@
   var GRAUS = [
     'Camiseta / PP X',
     'Meio escudo IX',
-    'Full XIII',
+    'Full VIII',
     'Cargo XI',
     'Regional V',
     'Grau IV',
