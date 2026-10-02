@@ -1,12 +1,28 @@
 (function(global) {
   var GRAUS = [
-    'Camiseta / PP X',
-    'Meio escudo IX',
-    'Full VIII',
-    'Cargo XI',
-    'Regional V',
+    'Grau I',
+    'Grau II',
+    'Brasil III',
     'Grau IV',
-    'Brasil III'
+    'Regional V',
+    'Cargo XI',
+    'Full XIII',
+    'Meio escudo IX',
+    'Camiseta / PP X'
+  ];
+
+  var CARGOS_GRAU_I = [
+    'Presidente',
+    'Vice-Presidente',
+    'Diretor de Disciplina Mundial',
+    'Diretor Social Mundial',
+    'Diretor de Comunicação Mundial',
+    'Diretor Sargento de Armas Mundial',
+    'Diretor Financeiro Mundial',
+    'Diretor Operacional Mundial',
+    'Diretor de Expansão Mundial',
+    'Jurídico',
+    'Inteligência Mundial'
   ];
 
   var REGIONAIS_DIVISOES = {
@@ -1995,9 +2011,11 @@
   global.REGIONAIS_DIVISOES = REGIONAIS_DIVISOES;
   global.REGIONAIS = REGIONAIS;
   global.GRAUS = GRAUS;
+  global.CARGOS_GRAU_I = CARGOS_GRAU_I;
 
   if (!global.BondeService) global.BondeService = {};
   global.BondeService.REGIONAIS_DIVISOES = REGIONAIS_DIVISOES;
   global.BondeService.REGIONAIS = REGIONAIS;
   global.BondeService.GRAUS = GRAUS;
+  global.BondeService.CARGOS_GRAU_I = CARGOS_GRAU_I;
 })(typeof window !== "undefined" ? window : globalThis);

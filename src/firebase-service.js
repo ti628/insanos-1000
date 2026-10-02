@@ -19,7 +19,9 @@ import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import firebaseConfig from '../firebase-applet-config.json' with { type: 'json' };
-import { REGIONAIS_DIVISOES, REGIONAIS, GRAUS } from './bonde-data.js';
+import { REGIONAIS_DIVISOES, REGIONAIS, GRAUS, CARGOS_GRAU_I, COMANDOS_GRAU_II, COMANDOS_GRAU_III } from './bonde-data.js';
+
+export { REGIONAIS_DIVISOES, REGIONAIS, GRAUS, CARGOS_GRAU_I, COMANDOS_GRAU_II, COMANDOS_GRAU_III };
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
@@ -97,11 +99,33 @@ export function makeDocId(param1, nomeColete, regional, divisao) {
   return `p_${prefix}_${hexHash}`.slice(0, 110);
 }
 
-export const GRAUS_SEM_DIVISAO = ['Regional V', 'Grau IV', 'Brasil III'];
+export function getGrauCategory(grau) {
+  const g = (grau || '').trim();
+  if (g === 'Grau I' || g === 'I') return 'I';
+  if (g === 'Grau II' || g === 'II') return 'II';
+  if (g === 'Brasil III' || g === 'Grau III' || g === 'III') return 'III';
+  if (g === 'Grau IV' || g === 'IV') return 'IV';
+  if (g === 'Regional V' || g === 'Grau V' || g === 'V') return 'V';
+  return 'OUTRO';
+}
 
 export function isDivisaoObrigatoria(grau) {
-  if (!grau) return true;
-  return !GRAUS_SEM_DIVISAO.includes(grau.trim());
+  return getGrauCategory(grau) === 'OUTRO';
+}
+
+export function isRegionalObrigatoria(grau) {
+  const cat = getGrauCategory(grau);
+  return cat === 'V' || cat === 'OUTRO';
+}
+
+export function isRegionalAplicavel(grau) {
+  const cat = getGrauCategory(grau);
+  return cat === 'IV' || cat === 'V' || cat === 'OUTRO';
+}
+
+export function isDivisaoAplicavel(grau) {
+  const cat = getGrauCategory(grau);
+  return cat === 'IV' || cat === 'OUTRO';
 }
 
 export async function confirmarPresenca({
@@ -111,6 +135,9 @@ export async function confirmarPresenca({
   regional = '',
   divisao = '',
   grau = '',
+  cargoFuncao = '',
+  comandoInternacional = '',
+  comandoPasta = '',
   motoclube = ''
 }) {
   const isConvidado = tipoParticipante === 'Convidado';
@@ -138,11 +165,16 @@ export async function confirmarPresenca({
 
     docId = makeDocId({ tipoParticipante: 'Convidado', nome: nomeTrim, motoclube: motoclubeTrim });
     payload = {
+      tipoParticipante: 'Convidado',
       nome: nomeTrim,
-      nomeColete: motoclubeTrim,
-      regional: 'Convidado',
+      nomeColete: '',
+      motoclube: motoclubeTrim,
+      regional: '',
       divisao: '',
-      grau: 'Convidado',
+      grau: '',
+      cargoFuncao: '',
+      comandoInternacional: '',
+      comandoPasta: '',
       evento: '1º Bonde das 1000 Motos',
       dataEvento: '10/10/2026',
       horarioSaida: '10:00',
@@ -152,38 +184,62 @@ export async function confirmarPresenca({
     };
   } else {
     const nomeColeteTrim = (nomeColete || '').trim();
-    const regionalTrim = (regional || '').trim();
     const grauTrim = (grau || '').trim();
-    const precisaDivisao = isDivisaoObrigatoria(grauTrim);
-    const divisaoFinal = (divisao || '').trim();
+    const regionalTrim = (regional || '').trim();
+    const divisaoTrim = (divisao || '').trim();
+    const cargoFuncaoTrim = (cargoFuncao || '').trim();
+    const comandoInternacionalTrim = (comandoInternacional || '').trim();
+    const comandoPastaTrim = (comandoPasta || '').trim();
 
-    if (!nomeTrim || !nomeColeteTrim || !regionalTrim || !grauTrim || (precisaDivisao && !divisaoFinal)) {
-      if (precisaDivisao && !divisaoFinal) {
-        return { success: false, error: 'O campo Divisão é obrigatório para este grau.' };
-      }
-      return { success: false, error: 'Todos os campos obrigatórios devem ser preenchidos.' };
+    if (!nomeTrim || !nomeColeteTrim || !grauTrim) {
+      return { success: false, error: 'Por favor, preencha todos os campos obrigatórios.' };
     }
+
+    const cat = getGrauCategory(grauTrim);
+
+    if (cat === 'I' && !cargoFuncaoTrim) {
+      return { success: false, error: 'O campo Cargo / Função é obrigatório para o Grau I.' };
+    }
+    if (cat === 'II' && !comandoInternacionalTrim) {
+      return { success: false, error: 'O campo Comando Internacional / Continental é obrigatório para o Grau II.' };
+    }
+    if (cat === 'III' && !comandoPastaTrim) {
+      return { success: false, error: 'O campo Comando / Pasta é obrigatório para o Grau III.' };
+    }
+    if ((cat === 'V' || cat === 'OUTRO') && !regionalTrim) {
+      return { success: false, error: 'O campo Regional é obrigatório.' };
+    }
+    if (cat === 'OUTRO' && !divisaoTrim) {
+      return { success: false, error: 'O campo Divisão é obrigatório para este grau.' };
+    }
+
+    const finalRegional = (cat === 'I' || cat === 'II' || cat === 'III') ? '' : regionalTrim;
+    const finalDivisao = (cat === 'I' || cat === 'II' || cat === 'III' || cat === 'V') ? '' : divisaoTrim;
 
     docId = makeDocId({
       tipoParticipante: 'Membro Insanos',
       nome: nomeTrim,
       nomeColete: nomeColeteTrim,
-      regional: regionalTrim,
-      divisao: divisaoFinal
+      regional: finalRegional,
+      divisao: finalDivisao
     });
 
     payload = {
+      tipoParticipante: 'Membro Insanos',
       nome: nomeTrim,
       nomeColete: nomeColeteTrim,
-      regional: regionalTrim,
-      divisao: divisaoFinal,
+      regional: finalRegional,
+      divisao: finalDivisao,
       grau: grauTrim,
+      cargoFuncao: cat === 'I' ? cargoFuncaoTrim : '',
+      comandoInternacional: cat === 'II' ? comandoInternacionalTrim : '',
+      comandoPasta: cat === 'III' ? comandoPastaTrim : '',
       evento: '1º Bonde das 1000 Motos',
       dataEvento: '10/10/2026',
       horarioSaida: '10:00',
       localConcentracao: 'PE Avenida Deputado Aníbal Khury',
       dataHoraConfirmacao,
-      lookupKey: `${normalizeStr(nomeTrim)}_${normalizeStr(nomeColeteTrim)}_${normalizeStr(regionalTrim)}_${normalizeStr(divisaoFinal)}`
+      lookupKey: `${normalizeStr(nomeTrim)}_${normalizeStr(nomeColeteTrim)}_${normalizeStr(finalRegional)}_${normalizeStr(finalDivisao)}`
     };
   }
 
@@ -203,11 +259,14 @@ export async function confirmarPresenca({
     const returnData = {
       ...payload,
       tipoParticipante: isConvidado ? 'Convidado' : 'Membro Insanos',
-      motoclube: isConvidado ? (motoclube || '').trim() : 'Insanos MC',
-      nomeColete: isConvidado ? '-' : payload.nomeColete,
-      regional: isConvidado ? '-' : payload.regional,
-      divisao: isConvidado ? '-' : payload.divisao,
-      grau: isConvidado ? '-' : payload.grau
+      motoclube: isConvidado ? (payload.motoclube || '') : 'Insanos MC',
+      nomeColete: isConvidado ? '' : payload.nomeColete,
+      regional: payload.regional,
+      divisao: payload.divisao,
+      grau: payload.grau,
+      cargoFuncao: payload.cargoFuncao,
+      comandoInternacional: payload.comandoInternacional,
+      comandoPasta: payload.comandoPasta
     };
     return { success: true, data: returnData, id: docId };
   } catch (err) {
@@ -222,16 +281,21 @@ export async function listarParticipantes() {
     const list = [];
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
-      const isConv = data.tipoParticipante === 'Convidado' || data.regional === 'Convidado' || data.grau === 'Convidado';
+      const isConv = data.tipoParticipante === 'Convidado';
       list.push({
         id: docSnap.id,
         ...data,
         tipoParticipante: isConv ? 'Convidado' : 'Membro Insanos',
-        motoclube: isConv ? (data.motoclube || data.nomeColete || 'Sem Clube') : 'Insanos MC',
-        nomeColete: isConv ? '-' : (data.nomeColete || '-'),
-        regional: isConv ? '-' : (data.regional || '-'),
-        divisao: isConv ? '-' : (data.divisao || '-'),
-        grau: isConv ? '-' : (data.grau || '-')
+        motoclube: isConv ? (data.motoclube || data.nomeColete || '') : '',
+        nome: data.nome || '',
+        nomeColete: isConv ? '' : (data.nomeColete || ''),
+        regional: data.regional || '',
+        divisao: data.divisao || '',
+        grau: isConv ? '' : (data.grau || ''),
+        cargoFuncao: data.cargoFuncao || '',
+        comandoInternacional: data.comandoInternacional || '',
+        comandoPasta: data.comandoPasta || '',
+        dataHoraConfirmacao: data.dataHoraConfirmacao || ''
       });
     });
     list.sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
@@ -254,6 +318,8 @@ export async function excluirParticipante(id) {
 export function exportarExcel(participantes, nomeArquivo = 'bonde_1000_participantes.xlsx') {
   const dados = participantes.map((p, idx) => {
     const isConv = p.tipoParticipante === 'Convidado';
+    const cargoExtra = p.cargoFuncao || p.comandoInternacional || p.comandoPasta || '';
+    const grauFormatado = isConv ? '-' : (p.grau ? (cargoExtra ? `${p.grau} (${cargoExtra})` : p.grau) : '-');
     return {
       'Nº': idx + 1,
       'Tipo': p.tipoParticipante || 'Membro Insanos',
@@ -262,7 +328,7 @@ export function exportarExcel(participantes, nomeArquivo = 'bonde_1000_participa
       'Motoclube': isConv ? (p.motoclube || '-') : 'Insanos MC',
       'Regional': isConv ? '-' : (p.regional || '-'),
       'Divisão': isConv ? '-' : (p.divisao || '-'),
-      'Grau': isConv ? '-' : (p.grau || '-'),
+      'Grau': grauFormatado,
       'Data/Hora da confirmação': p.dataHoraConfirmacao || ''
     };
   });
@@ -307,6 +373,8 @@ export function exportarPDF(participantes, nomeArquivo = 'bonde_1000_participant
   const tableData = participantes.map((p, idx) => {
     const isConv = p.tipoParticipante === 'Convidado';
     const coleteOuMc = isConv ? (p.motoclube ? `MC: ${p.motoclube}` : '-') : (p.nomeColete || '-');
+    const cargoExtra = p.cargoFuncao || p.comandoInternacional || p.comandoPasta || '';
+    const grauFormatado = isConv ? '-' : (p.grau ? (cargoExtra ? `${p.grau}\n(${cargoExtra})` : p.grau) : '-');
     return [
       idx + 1,
       p.tipoParticipante || 'Membro Insanos',
@@ -314,7 +382,7 @@ export function exportarPDF(participantes, nomeArquivo = 'bonde_1000_participant
       coleteOuMc,
       isConv ? '-' : (p.regional || '-'),
       isConv ? '-' : (p.divisao || '-'),
-      isConv ? '-' : (p.grau || '-'),
+      grauFormatado,
       p.dataHoraConfirmacao || ''
     ];
   });
@@ -376,7 +444,5 @@ export async function logoutAdmin() {
 export function onAdminAuthChange(callback) {
   return onAuthStateChanged(auth, callback);
 }
-
-export { REGIONAIS_DIVISOES, REGIONAIS, GRAUS };
 
 testConnection();

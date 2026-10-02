@@ -854,7 +854,10 @@
             const nomeMatch = (p.nome || '').toLowerCase().includes(search);
             const coleteMatch = (p.nomeColete || '').toLowerCase().includes(search);
             const motoclubeMatch = (p.motoclube || '').toLowerCase().includes(search);
-            if (!nomeMatch && !coleteMatch && !motoclubeMatch) return false;
+            const cargoMatch = (p.cargoFuncao || '').toLowerCase().includes(search);
+            const cmdIntlMatch = (p.comandoInternacional || '').toLowerCase().includes(search);
+            const cmdPastaMatch = (p.comandoPasta || '').toLowerCase().includes(search);
+            if (!nomeMatch && !coleteMatch && !motoclubeMatch && !cargoMatch && !cmdIntlMatch && !cmdPastaMatch) return false;
           }
           return true;
         });
@@ -955,9 +958,15 @@
           const coleteOuMc = isConv
             ? `<span style="color:var(--color-accent-2);font-weight:600">MC: ${escapeHtml(p.motoclube || 'Não informado')}</span>`
             : escapeHtml(p.nomeColete || '-');
-          const regionalVal = isConv ? '<span style="color:var(--color-neutral-400);">-</span>' : escapeHtml(p.regional || '-');
-          const divisaoVal = isConv ? '<span style="color:var(--color-neutral-400);">-</span>' : escapeHtml(p.divisao || '-');
-          const grauVal = isConv ? '<span style="color:var(--color-neutral-400);">-</span>' : `<span class="badge-grau">${escapeHtml(p.grau || '-')}</span>`;
+          const regionalVal = isConv ? '<span style="color:var(--color-neutral-400);">-</span>' : (p.regional ? escapeHtml(p.regional) : '<span style="color:var(--color-neutral-400);">Não aplicável</span>');
+          const divisaoVal = isConv ? '<span style="color:var(--color-neutral-400);">-</span>' : (p.divisao ? escapeHtml(p.divisao) : '<span style="color:var(--color-neutral-400);">Não aplicável</span>');
+          
+          let cargoDetail = '';
+          if (p.cargoFuncao) cargoDetail = `<div style="font-size:11px;font-weight:600;color:var(--color-neutral-700);margin-top:3px;">${escapeHtml(p.cargoFuncao)}</div>`;
+          else if (p.comandoInternacional) cargoDetail = `<div style="font-size:11px;font-weight:600;color:var(--color-neutral-700);margin-top:3px;">${escapeHtml(p.comandoInternacional)}</div>`;
+          else if (p.comandoPasta) cargoDetail = `<div style="font-size:11px;font-weight:600;color:var(--color-neutral-700);margin-top:3px;">${escapeHtml(p.comandoPasta)}</div>`;
+
+          const grauVal = isConv ? '<span style="color:var(--color-neutral-400);">-</span>' : `<span class="badge-grau">${escapeHtml(p.grau || '-')}</span>${cargoDetail}`;
 
           tr.innerHTML = `
             <td style="text-align: center; font-weight: 700; color: var(--color-neutral-600);">${idx + 1}</td>

@@ -12703,8 +12703,11 @@ a:hover{color:var(--color-accent-800)}
 .bonde-modal-card{width:100%;max-width:500px;background:var(--color-bg);border-radius:18px;padding:24px 20px;box-shadow:var(--shadow-lg);box-sizing:border-box;max-height:90vh;overflow-y:auto}
 .bonde-field{margin-bottom:14px}
 .bonde-label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--color-neutral-800)}
-.bonde-input,.bonde-select{width:100%;box-sizing:border-box;padding:12px 14px;font-size:15px;font-family:inherit;background:var(--color-neutral-100);border:1px solid var(--color-divider);border-radius:var(--radius-md);color:var(--color-text);outline:none;transition:border-color 0.15s}
-.bonde-input:focus,.bonde-select:focus{border-color:var(--color-accent);background:var(--color-bg)}
+.bonde-input{width:100%;box-sizing:border-box;padding:12px 14px;font-size:16px;font-family:inherit;background:var(--color-neutral-100);border:1px solid var(--color-divider);border-radius:var(--radius-md);color:var(--color-text);outline:none;transition:border-color 0.15s}
+.bonde-input:focus{border-color:var(--color-accent);background:var(--color-bg)}
+.bonde-select{width:100%;box-sizing:border-box;padding:12px 40px 12px 14px;font-size:16px;font-family:inherit;background-color:var(--color-neutral-100);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23333333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-size:18px 18px;border:1px solid var(--color-divider);border-radius:var(--radius-md);color:var(--color-text);outline:none;-webkit-appearance:none;-moz-appearance:none;appearance:none;opacity:1;-webkit-text-fill-color:currentColor;cursor:pointer;transition:border-color 0.15s}
+.bonde-select:focus{border-color:var(--color-accent);background-color:var(--color-bg)}
+.bonde-select option{background-color:#ffffff;color:#1a1a1a;font-size:16px;padding:8px}
 .bonde-alert-error{background:#fdf2f2;border:1px solid #f8b4b4;color:#c5221f;padding:10px 14px;border-radius:var(--radius-md);font-size:13px;font-weight:600;margin-bottom:16px}
 .bonde-summary-box{background:var(--color-neutral-100);border:1px solid var(--color-divider);border-radius:var(--radius-md);padding:16px;margin:16px 0;display:flex;flex-direction:column;gap:8px;font-size:14px}
 .bonde-choice-card{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;gap:14px;padding:16px;background:var(--color-neutral-100);border:2px solid var(--color-divider);border-radius:var(--radius-lg);cursor:pointer;transition:all 0.18s ease}
@@ -13023,9 +13026,22 @@ VALOR POR DIÁRIA/PESSOA: <span style="font-weight:700;color:var(--color-neutral
 </sc-if>
 <sc-if value="{{ isSuccessMembro }}" hint-placeholder-val="{{ true }}">
 <div><strong>Nome de Colete:</strong> {{ bondeSuccess.nomeColete }}</div>
-<div><strong>Regional:</strong> {{ bondeSuccess.regional }}</div>
-<div><strong>Divisão:</strong> {{ bondeSuccess.divisao || 'Não se aplica' }}</div>
 <div><strong>Grau:</strong> {{ bondeSuccess.grau }}</div>
+<sc-if value="{{ hasSuccessCargoFuncao }}" hint-placeholder-val="{{ false }}">
+<div><strong>Cargo / Função:</strong> {{ bondeSuccess.cargoFuncao }}</div>
+</sc-if>
+<sc-if value="{{ hasSuccessComandoInternacional }}" hint-placeholder-val="{{ false }}">
+<div><strong>Comando Internacional:</strong> {{ bondeSuccess.comandoInternacional }}</div>
+</sc-if>
+<sc-if value="{{ hasSuccessComandoPasta }}" hint-placeholder-val="{{ false }}">
+<div><strong>Comando / Pasta:</strong> {{ bondeSuccess.comandoPasta }}</div>
+</sc-if>
+<sc-if value="{{ hasSuccessRegional }}" hint-placeholder-val="{{ true }}">
+<div><strong>Regional:</strong> {{ bondeSuccess.regional || 'Não se aplica' }}</div>
+</sc-if>
+<sc-if value="{{ hasSuccessDivisao }}" hint-placeholder-val="{{ true }}">
+<div><strong>Divisão:</strong> {{ bondeSuccess.divisao || 'Não se aplica' }}</div>
+</sc-if>
 </sc-if>
 </div>
 
@@ -13099,10 +13115,58 @@ Selecione abaixo o seu tipo de participação para iniciar o cadastro:
 <input id="bonde-colete" class="bonde-input" type="text" placeholder="Nome de colete" value="{{ bondeColete }}" sc-camel-on-input="{{ onColeteInput }}" required>
 </div>
 
-<!-- FILTRO DE REGIONAL NA MESMA ÁREA: DIGITA 'CURITIBA' E APARECEM AS OPÇÕES NO MESMO LUGAR -->
+<!-- 1. GRAU É O PRIMEIRO CAMPO DE SELEÇÃO E SEMPRE OBRIGATÓRIO -->
+<div class="bonde-field">
+<label class="bonde-label" for="bonde-grau">Grau *</label>
+<select id="bonde-grau" class="bonde-select" sc-camel-on-change="{{ onGrauChange }}" required>
+<option value="">Selecione o Grau</option>
+<sc-for list="{{ bondeGrausList }}" as="g">
+<option value="{{ g }}">{{ g }}</option>
+</sc-for>
+</select>
+</div>
+
+<sc-if value="{{ !bondeGrau }}" hint-placeholder-val="{{ true }}">
+<div style="padding:10px 12px;background:var(--color-neutral-100);border-radius:var(--radius-md);font-size:12px;color:var(--color-neutral-600);margin-bottom:14px">
+ℹ️ Selecione o seu <strong>Grau</strong> acima para exibir os campos específicos e regionais.
+</div>
+</sc-if>
+
+<!-- 2. CAMPOS ESPECÍFICOS DO GRAU -->
+<!-- Grau I: Comando Mundial -> Cargo / Função * -->
+<sc-if value="{{ isGrauI }}" hint-placeholder-val="{{ false }}">
+<div class="bonde-field">
+<label class="bonde-label" for="bonde-cargo-funcao">Cargo / Função *</label>
+<select id="bonde-cargo-funcao" class="bonde-select" sc-camel-on-change="{{ onCargoFuncaoChange }}" required>
+<option value="">Selecione o Cargo / Função</option>
+<sc-for list="{{ cargosGrauIList }}" as="c">
+<option value="{{ c }}">{{ c }}</option>
+</sc-for>
+</select>
+</div>
+</sc-if>
+
+<!-- Grau II: Comando Internacional / Continental * -->
+<sc-if value="{{ isGrauII }}" hint-placeholder-val="{{ false }}">
+<div class="bonde-field">
+<label class="bonde-label" for="bonde-comando-internacional">Comando Internacional / Continental *</label>
+<input id="bonde-comando-internacional" class="bonde-input" type="text" placeholder="Ex: Comando Europa, Comando América do Sul..." value="{{ bondeComandoInternacional }}" sc-camel-on-input="{{ onComandoInternacionalInput }}" required>
+</div>
+</sc-if>
+
+<!-- Brasil III: Comando / Pasta * -->
+<sc-if value="{{ isGrauIII }}" hint-placeholder-val="{{ false }}">
+<div class="bonde-field">
+<label class="bonde-label" for="bonde-comando-pasta">Comando / Pasta *</label>
+<input id="bonde-comando-pasta" class="bonde-input" type="text" placeholder="Ex: Comando Nacional, Pasta Social, etc." value="{{ bondeComandoPasta }}" sc-camel-on-input="{{ onComandoPastaInput }}" required>
+</div>
+</sc-if>
+
+<!-- 3. REGIONAL (quando aplicável: Grau IV, Regional V, Cargo XI, Full XIII, Meio escudo IX, Camiseta / PP X) -->
+<sc-if value="{{ isRegionalVisible }}" hint-placeholder-val="{{ true }}">
 <div class="bonde-field" style="position:relative">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-<label class="bonde-label" for="bonde-regional-input" style="margin-bottom:0">Regional *</label>
+<label class="bonde-label" for="bonde-regional-input" style="margin-bottom:0">{{ bondeRegionalLabel }}</label>
 <sc-if value="{{ hasRegionalSelected }}">
 <span style="font-size:11px;font-weight:600;color:var(--color-accent-700)">✓ Regional selecionada</span>
 </sc-if>
@@ -13116,8 +13180,7 @@ Selecione abaixo o seu tipo de participação para iniciar o cadastro:
        placeholder="Digite sua Regional (ex: Curitiba, Litoral, SP...)"
        value="{{ bondeRegionalDisplayVal }}"
        sc-camel-on-input="{{ onRegionalInputSearch }}"
-       sc-camel-on-focus="{{ onRegionalInputFocus }}"
-       required>
+       sc-camel-on-focus="{{ onRegionalInputFocus }}">
 <sc-if value="{{ hasRegionalSearchVal }}">
 <button type="button" class="bonde-regional-clear-btn" sc-camel-on-click="{{ clearRegionalSelection }}" title="Limpar">✕</button>
 </sc-if>
@@ -13145,7 +13208,10 @@ Nenhuma regional encontrada para "<strong>{{ bondeRegionalSearch }}</strong>"
 </div>
 </sc-if>
 </div>
+</sc-if>
 
+<!-- 4. DIVISÃO (quando aplicável: Grau IV, Regional V, Cargo XI, Full XIII, Meio escudo IX, Camiseta / PP X) -->
+<sc-if value="{{ isDivisaoVisible }}" hint-placeholder-val="{{ true }}">
 <div class="bonde-field">
 <label class="bonde-label" for="bonde-divisao">{{ bondeDivisaoLabel }}</label>
 <select id="bonde-divisao" class="bonde-select" sc-camel-on-change="{{ onDivisaoChange }}">
@@ -13155,16 +13221,7 @@ Nenhuma regional encontrada para "<strong>{{ bondeRegionalSearch }}</strong>"
 </sc-for>
 </select>
 </div>
-
-<div class="bonde-field">
-<label class="bonde-label" for="bonde-grau">Grau *</label>
-<select id="bonde-grau" class="bonde-select" sc-camel-on-change="{{ onGrauChange }}">
-<option value="">Selecione o Grau</option>
-<sc-for list="{{ bondeGrausList }}" as="g">
-<option value="{{ g }}">{{ g }}</option>
-</sc-for>
-</select>
-</div>
+</sc-if>
 
 <div style="display:flex;flex-direction:column;gap:10px;margin-top:20px">
 <button class="btn btn-primary" sc-camel-on-click="{{ submitBonde }}" style="width:100%;padding:14px;font-size:15px">
@@ -13246,6 +13303,9 @@ class Component extends DCLogic {
       showRegionalDropdown: false,
       bondeDivisao: '',
       bondeGrau: '',
+      bondeCargoFuncao: '',
+      bondeComandoInternacional: '',
+      bondeComandoPasta: '',
       campingPessoas: 1,
       campingCheckinDay: 'sex',
       campingCheckinTime: '15:00',
@@ -13341,16 +13401,35 @@ class Component extends DCLogic {
     this.setState({ campingCheckoutDay: val });
   }
 
+  onCargoFuncaoChange(e) {
+    const val = (e && e.target ? e.target.value : '').trim();
+    this.setState({ bondeCargoFuncao: val, bondeError: null });
+  }
+  onComandoInternacionalInput(e) {
+    const val = (e && e.target ? e.target.value : '');
+    this.setState({ bondeComandoInternacional: val, bondeError: null });
+  }
+  onComandoPastaInput(e) {
+    const val = (e && e.target ? e.target.value : '');
+    this.setState({ bondeComandoPasta: val, bondeError: null });
+  }
+
   onDivisaoChange(e) {
     const val = (e && e.target ? e.target.value : '').trim();
     this.setState({ bondeDivisao: val, bondeError: null });
   }
   onGrauChange(e) {
     const val = (e && e.target ? e.target.value : '').trim();
-    const isSemDiv = ['Regional V', 'Grau IV', 'Brasil III'].includes(val);
+    const isGrauSup = ['Grau I', 'Grau II', 'Brasil III', 'Grau III'].includes(val);
+    const isSemDiv = isGrauSup || ['Regional V', 'Grau IV'].includes(val);
     this.setState({
       bondeGrau: val,
       bondeDivisao: isSemDiv ? '' : this.state.bondeDivisao,
+      bondeRegional: isGrauSup ? '' : this.state.bondeRegional,
+      bondeRegionalSearch: isGrauSup ? '' : this.state.bondeRegionalSearch,
+      bondeCargoFuncao: val === 'Grau I' ? this.state.bondeCargoFuncao : '',
+      bondeComandoInternacional: val === 'Grau II' ? this.state.bondeComandoInternacional : '',
+      bondeComandoPasta: (val === 'Brasil III' || val === 'Grau III') ? this.state.bondeComandoPasta : '',
       bondeError: null
     });
     if (isSemDiv) {
@@ -13412,32 +13491,66 @@ class Component extends DCLogic {
     } else {
       const nome = (s.bondeNome || document.getElementById('bonde-nome')?.value || '').trim();
       const nomeColete = (s.bondeColete || document.getElementById('bonde-colete')?.value || '').trim();
-      
-      const allRegs = (window.BondeService && window.BondeService.REGIONAIS) ? window.BondeService.REGIONAIS : [];
-      let regional = (s.bondeRegional || '').trim();
-      const regionalInputVal = (document.getElementById('bonde-regional-input')?.value || s.bondeRegionalSearch || '').trim();
-      if (!regional && regionalInputVal) {
-        const match = allRegs.find(r => r.toLowerCase() === regionalInputVal.toLowerCase());
-        if (match) {
-          regional = match;
-        }
-      }
-
       const grau = (s.bondeGrau || document.getElementById('bonde-grau')?.value || '').trim();
-      const divisao = (s.bondeDivisao || document.getElementById('bonde-divisao')?.value || '').trim();
 
-      const isGrauSemDivisao = ['Regional V', 'Grau IV', 'Brasil III'].includes(grau);
-      const divisaoObrigatoria = !isGrauSemDivisao;
-
-      if (!nome || !nomeColete || !regional || !grau || (divisaoObrigatoria && !divisao)) {
-        if (!regional) {
-          this.setState({ bondeError: 'Por favor, selecione uma Regional válida na lista de opções.' });
-        } else if (divisaoObrigatoria && !divisao) {
-          this.setState({ bondeError: 'O campo Divisão é obrigatório para este grau.' });
+      if (!nome || !nomeColete || !grau) {
+        if (!grau) {
+          this.setState({ bondeError: 'Por favor, selecione o Grau.' });
         } else {
           this.setState({ bondeError: 'Por favor, preencha todos os campos obrigatórios.' });
         }
         return;
+      }
+
+      const isGrauI = grau === 'Grau I';
+      const isGrauII = grau === 'Grau II';
+      const isGrauIII = (grau === 'Brasil III' || grau === 'Grau III');
+      const isGrauSuperior = isGrauI || isGrauII || isGrauIII;
+
+      const cargoFuncao = (s.bondeCargoFuncao || document.getElementById('bonde-cargo-funcao')?.value || '').trim();
+      const comandoInternacional = (s.bondeComandoInternacional || document.getElementById('bonde-comando-internacional')?.value || '').trim();
+      const comandoPasta = (s.bondeComandoPasta || document.getElementById('bonde-comando-pasta')?.value || '').trim();
+
+      if (isGrauI && !cargoFuncao) {
+        this.setState({ bondeError: 'O campo Cargo / Função é obrigatório para o Grau I.' });
+        return;
+      }
+      if (isGrauII && !comandoInternacional) {
+        this.setState({ bondeError: 'O campo Comando Internacional / Continental é obrigatório para o Grau II.' });
+        return;
+      }
+      if (isGrauIII && !comandoPasta) {
+        this.setState({ bondeError: 'O campo Comando / Pasta é obrigatório para o Grau III.' });
+        return;
+      }
+
+      let regional = '';
+      let divisao = '';
+
+      if (!isGrauSuperior) {
+        const allRegs = (window.BondeService && window.BondeService.REGIONAIS) ? window.BondeService.REGIONAIS : [];
+        regional = (s.bondeRegional || '').trim();
+        const regionalInputVal = (document.getElementById('bonde-regional-input')?.value || s.bondeRegionalSearch || '').trim();
+        if (!regional && regionalInputVal) {
+          const match = allRegs.find(r => r.toLowerCase() === regionalInputVal.toLowerCase());
+          if (match) {
+            regional = match;
+          }
+        }
+
+        divisao = (s.bondeDivisao || document.getElementById('bonde-divisao')?.value || '').trim();
+
+        const isRegionalObrigatoria = grau !== 'Grau IV';
+        const isDivisaoObrigatoria = !['Regional V', 'Grau IV'].includes(grau);
+
+        if (isRegionalObrigatoria && !regional) {
+          this.setState({ bondeError: 'Por favor, selecione uma Regional válida na lista de opções.' });
+          return;
+        }
+        if (isDivisaoObrigatoria && !divisao) {
+          this.setState({ bondeError: 'O campo Divisão é obrigatório para este grau.' });
+          return;
+        }
       }
 
       this.setState({ bondeSubmitting: true, bondeError: null });
@@ -13449,9 +13562,12 @@ class Component extends DCLogic {
           tipoParticipante: 'Membro Insanos',
           nome,
           nomeColete,
-          regional,
-          divisao: isGrauSemDivisao && !divisao ? '' : divisao,
-          grau
+          regional: isGrauSuperior ? '' : regional,
+          divisao: isGrauSuperior ? '' : divisao,
+          grau,
+          cargoFuncao: isGrauI ? cargoFuncao : '',
+          comandoInternacional: isGrauII ? comandoInternacional : '',
+          comandoPasta: isGrauIII ? comandoPasta : ''
         });
         if (!res.success) {
           this.setState({ bondeError: res.error, bondeSubmitting: false });
@@ -13469,7 +13585,10 @@ class Component extends DCLogic {
             bondeRegionalSearch: '',
             showRegionalDropdown: false,
             bondeDivisao: '',
-            bondeGrau: ''
+            bondeGrau: '',
+            bondeCargoFuncao: '',
+            bondeComandoInternacional: '',
+            bondeComandoPasta: ''
           });
         }
       } catch (err) {
@@ -13507,7 +13626,10 @@ class Component extends DCLogic {
       bondeRegional: '',
       bondeRegionalSearch: '',
       bondeDivisao: '',
-      bondeGrau: ''
+      bondeGrau: '',
+      bondeCargoFuncao: '',
+      bondeComandoInternacional: '',
+      bondeComandoPasta: ''
     });
   }
 
@@ -13581,6 +13703,25 @@ class Component extends DCLogic {
     const hasRegionalSelected = !!s.bondeRegional;
     const hasRegionalSearchVal = !!(s.bondeRegional || s.bondeRegionalSearch);
 
+    const isGrauI = s.bondeGrau === 'Grau I';
+    const isGrauII = s.bondeGrau === 'Grau II';
+    const isGrauIII = s.bondeGrau === 'Brasil III' || s.bondeGrau === 'Grau III';
+    const isGrauSuperior = isGrauI || isGrauII || isGrauIII;
+
+    const isRegionalVisible = !!s.bondeGrau && !isGrauSuperior;
+    const isDivisaoVisible = !!s.bondeGrau && !isGrauSuperior;
+
+    const bondeRegionalLabel = s.bondeGrau === 'Grau IV' ? 'Regional (opcional)' : 'Regional *';
+    const bondeDivisaoLabel = ['Regional V', 'Grau IV'].includes(s.bondeGrau) ? 'Divisão (opcional)' : 'Divisão *';
+    const bondeDivisaoPlaceholder = ['Regional V', 'Grau IV'].includes(s.bondeGrau) ? 'Divisão não se aplica a este Grau' : (s.bondeRegional ? 'Selecione a Divisão' : 'Selecione primeiro a Regional');
+
+    const hasSuccessCargoFuncao = !!(s.bondeSuccess && s.bondeSuccess.cargoFuncao);
+    const hasSuccessComandoInternacional = !!(s.bondeSuccess && s.bondeSuccess.comandoInternacional);
+    const hasSuccessComandoPasta = !!(s.bondeSuccess && s.bondeSuccess.comandoPasta);
+    const isSuccessGrauSup = s.bondeSuccess && ['Grau I', 'Grau II', 'Brasil III', 'Grau III'].includes(s.bondeSuccess.grau);
+    const hasSuccessRegional = !isSuccessGrauSup;
+    const hasSuccessDivisao = !isSuccessGrauSup;
+
     return {
       scrollRef: this.scrollRef,
       isInicio: s.tab === 'inicio', isBandas: s.tab === 'bandas', isBonde: s.tab === 'bonde', isCamping: s.tab === 'camping', isFesta: s.tab === 'festa',
@@ -13622,11 +13763,25 @@ class Component extends DCLogic {
       bondeRegionalSearch: s.bondeRegionalSearch || '',
       bondeDivisao: s.bondeDivisao || '',
       bondeGrau: s.bondeGrau || '',
+      bondeCargoFuncao: s.bondeCargoFuncao || '',
+      bondeComandoInternacional: s.bondeComandoInternacional || '',
+      bondeComandoPasta: s.bondeComandoPasta || '',
+      isGrauI,
+      isGrauII,
+      isGrauIII,
+      isRegionalVisible,
+      isDivisaoVisible,
+      bondeRegionalLabel,
+      bondeDivisaoLabel,
+      bondeDivisaoPlaceholder,
+      cargosGrauIList: (window.BondeService && window.BondeService.CARGOS_GRAU_I) ? window.BondeService.CARGOS_GRAU_I : [],
+      hasSuccessCargoFuncao,
+      hasSuccessComandoInternacional,
+      hasSuccessComandoPasta,
+      hasSuccessRegional,
+      hasSuccessDivisao,
       bondeGrausList: (window.BondeService && window.BondeService.GRAUS) ? window.BondeService.GRAUS : [],
       bondeDivisoesList: (window.BondeService && s.bondeRegional && window.BondeService.REGIONAIS_DIVISOES) ? (window.BondeService.REGIONAIS_DIVISOES[s.bondeRegional] || []) : [],
-      bondeDivisaoPlaceholder: ['Regional V', 'Grau IV', 'Brasil III'].includes(s.bondeGrau) ? 'Divisão não se aplica a este Grau' : (s.bondeRegional ? 'Selecione a Divisão' : 'Selecione primeiro a Regional'),
-      bondeDivisaoLabel: ['Regional V', 'Grau IV', 'Brasil III'].includes(s.bondeGrau) ? 'Divisão (opcional)' : 'Divisão *',
-      isGrauSemDivisao: ['Regional V', 'Grau IV', 'Brasil III'].includes(s.bondeGrau),
       pickTipoMembro: () => this.pickTipoMembro(),
       pickTipoConvidado: () => this.pickTipoConvidado(),
       resetTipoParticipante: () => this.resetTipoParticipante(),
@@ -13639,6 +13794,9 @@ class Component extends DCLogic {
       openBondeModal: () => this.openBondeModal(),
       closeBondeModal: () => this.closeBondeModal(),
       resetBondeRegistration: () => this.resetBondeRegistration(),
+      onCargoFuncaoChange: (e) => this.onCargoFuncaoChange(e),
+      onComandoInternacionalInput: (e) => this.onComandoInternacionalInput(e),
+      onComandoPastaInput: (e) => this.onComandoPastaInput(e),
       onDivisaoChange: (e) => this.onDivisaoChange(e),
       onGrauChange: (e) => this.onGrauChange(e),
       onNomeInput: (e) => this.onNomeInput(e),

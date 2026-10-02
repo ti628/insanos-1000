@@ -1,11 +1,50 @@
 export const GRAUS = [
-  'Camiseta / PP X',
-  'Meio escudo IX',
-  'Full VIII',
-  'Cargo VI',
-  'Regional V',
+  'Grau I',
+  'Grau II',
+  'Brasil III',
   'Grau IV',
-  'Brasil III'
+  'Regional V',
+  'Cargo XI',
+  'Full XIII',
+  'Meio escudo IX',
+  'Camiseta / PP X'
+];
+
+export const CARGOS_GRAU_I = [
+  'Presidente',
+  'Vice-Presidente',
+  'Diretor de Disciplina Mundial',
+  'Diretor Social Mundial',
+  'Diretor de Comunicação Mundial',
+  'Diretor Sargento de Armas Mundial',
+  'Diretor Financeiro Mundial',
+  'Diretor Operacional Mundial',
+  'Diretor de Expansão Mundial',
+  'Jurídico',
+  'Inteligência Mundial'
+];
+
+export const COMANDOS_GRAU_II = [
+  'Comando América do Sul',
+  'Comando Europa',
+  'Comando América do Norte',
+  'Comando América Central',
+  'Comando Ásia',
+  'Comando Oceania',
+  'Comando África'
+];
+
+export const COMANDOS_GRAU_III = [
+  'Comando Nacional',
+  'Pasta Social',
+  'Pasta Disciplina',
+  'Pasta Expansão',
+  'Pasta Comunicação',
+  'Pasta Sargento de Armas',
+  'Pasta Financeiro',
+  'Pasta Operacional',
+  'Pasta Inteligência',
+  'Pasta Jurídico'
 ];
 
 export const REGIONAIS_DIVISOES = {
