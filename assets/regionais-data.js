@@ -5,8 +5,8 @@
     'Brasil III',
     'Grau IV',
     'Regional V',
-    'Cargo XI',
-    'Full XIII',
+    'Cargo VI',
+    'Full VIII',
     'Meio escudo IX',
     'Camiseta / PP X'
   ];

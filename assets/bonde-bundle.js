@@ -87387,8 +87387,8 @@ This typically indicates that your device does not have a healthy Internet conne
     "Brasil III",
     "Grau IV",
     "Regional V",
-    "Cargo XI",
-    "Full XIII",
+    "Cargo VI",
+    "Full VIII",
     "Meio escudo IX",
     "Camiseta / PP X"
   ];

@@ -894,7 +894,14 @@
               if (!isConv && (p.grau || '').toLowerCase() !== 'convidado') return false;
             } else {
               if (isConv) return false;
-              if ((p.grau || '').toLowerCase() !== selGrau) return false;
+              const pGrauLower = (p.grau || '').toLowerCase();
+              if (selGrau === 'cargo vi' || selGrau === 'grau vi') {
+                if (pGrauLower !== 'cargo vi' && pGrauLower !== 'grau vi' && pGrauLower !== 'cargo xi') return false;
+              } else if (selGrau === 'full viii' || selGrau === 'grau viii') {
+                if (pGrauLower !== 'full viii' && pGrauLower !== 'full xiii' && pGrauLower !== 'grau viii') return false;
+              } else if (pGrauLower !== selGrau) {
+                return false;
+              }
             }
           }
 
